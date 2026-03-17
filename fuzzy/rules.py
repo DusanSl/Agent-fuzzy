@@ -4,14 +4,14 @@ from fuzzy.membership import (
     x_vizuelna, x_zvuk, x_pokrivenost, x_detekcija,
     x_ang, x_rizik, x_urgentnost,
     # Ulazne funkcije pripadnosti
-    vizuelna_niska, vizuelna_srednja, vizuelna_visoka,
+    vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna,
     zvuk_tisina, zvuk_sum, zvuk_pucanj,
     pokr_retka, pokr_srednja, pokr_gusta,
     det_niska, det_srednja, det_visoka,
     # Izlazne funkcije pripadnosti
     ang_ignorisi, ang_trazi, ang_oznaci,
-    rizik_nizak, rizik_srednji, rizik_visok,
-    urg_niska, urg_srednja, urg_urgentna,
+    rizik_bezopasan, rizik_umeren, rizik_kritican,
+    hitnost_mirna, hitnost_umerena, hitnost_kriticna,
     # Helper
     get_membership,
 )
@@ -20,9 +20,9 @@ from fuzzy.membership import (
 def fuzzifikuj(vizuelna: float, zvuk: float, pokrivenost: float, detekcija: float) -> dict:
     return {
         "vizuelna": {
-            "niska":   get_membership(x_vizuelna, vizuelna_niska,   vizuelna),
-            "srednja": get_membership(x_vizuelna, vizuelna_srednja, vizuelna),
-            "visoka":  get_membership(x_vizuelna, vizuelna_visoka,  vizuelna),
+            "nejasna":   get_membership(x_vizuelna, vizuelna_nejasna,   vizuelna),
+            "delimicna": get_membership(x_vizuelna, vizuelna_delimicna, vizuelna),
+            "jasna":     get_membership(x_vizuelna, vizuelna_jasna,     vizuelna),
         },
         "zvuk": {
             "tisina": get_membership(x_zvuk, zvuk_tisina, zvuk),
@@ -55,10 +55,10 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
 
     # IGNORIŠI pravila
 
-    p01 = min(v["niska"], z["tisina"])
+    p01 = min(v["nejasna"], z["tisina"])
     aktivacije.append(np.fmin(p01, ang_ignorisi))
 
-    p02 = min(v["niska"], p["gusta"])
+    p02 = min(v["nejasna"], p["gusta"])
     aktivacije.append(np.fmin(p02, ang_ignorisi))
 
     p03 = min(d["niska"], z["tisina"])
@@ -66,10 +66,10 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
 
     # TRAŽI pravila
 
-    p04 = v["srednja"]
+    p04 = v["delimicna"]
     aktivacije.append(np.fmin(p04, ang_trazi))
 
-    p05 = min(z["sum"], v["niska"])
+    p05 = min(z["sum"], v["nejasna"])
     aktivacije.append(np.fmin(p05, ang_trazi))
 
     p06 = min(d["srednja"], p["srednja"])
@@ -78,21 +78,21 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
     p07 = min(z["sum"], d["srednja"])
     aktivacije.append(np.fmin(p07, ang_trazi))
 
-    p08 = min(v["srednja"], p["retka"])
+    p08 = min(v["delimicna"], p["retka"])
     aktivacije.append(np.fmin(p08, ang_trazi))
 
     # OZNAČI pravila
 
-    p09 = min(v["visoka"], d["visoka"])
+    p09 = min(v["jasna"], d["visoka"])
     aktivacije.append(np.fmin(p09, ang_oznaci))
 
-    p10 = min(v["visoka"], z["pucanj"])
+    p10 = min(v["jasna"], z["pucanj"])
     aktivacije.append(np.fmin(p10, ang_oznaci))
 
     p11 = min(d["visoka"], p["retka"])
     aktivacije.append(np.fmin(p11, ang_oznaci))
 
-    p12 = min(v["visoka"], z["sum"], d["visoka"])
+    p12 = min(v["jasna"], z["sum"], d["visoka"])
     aktivacije.append(np.fmin(p12, ang_oznaci))
 
     p14 = z["pucanj"]
@@ -112,38 +112,38 @@ def kontroler_rizik(mu: dict) -> np.ndarray:
 
     aktivacije = []
 
-    # NIZAK rizik
-    p01 = min(v["niska"], z["tisina"])
-    aktivacije.append(np.fmin(p01, rizik_nizak))
+    # BEZOPASAN rizik
+    p01 = min(v["nejasna"], z["tisina"])
+    aktivacije.append(np.fmin(p01, rizik_bezopasan))
 
     p02 = min(p["gusta"], d["niska"])
-    aktivacije.append(np.fmin(p02, rizik_nizak))
+    aktivacije.append(np.fmin(p02, rizik_bezopasan))
 
-    # SREDNJI rizik
-    p03 = min(v["srednja"], z["sum"])
-    aktivacije.append(np.fmin(p03, rizik_srednji))
+    # UMEREN rizik
+    p03 = min(v["delimicna"], z["sum"])
+    aktivacije.append(np.fmin(p03, rizik_umeren))
 
     p04 = d["srednja"]
-    aktivacije.append(np.fmin(p04, rizik_srednji))
+    aktivacije.append(np.fmin(p04, rizik_umeren))
 
-    p05 = min(v["srednja"], d["srednja"])
-    aktivacije.append(np.fmin(p05, rizik_srednji))
+    p05 = min(v["delimicna"], d["srednja"])
+    aktivacije.append(np.fmin(p05, rizik_umeren))
 
     p06 = min(z["sum"], p["retka"])
-    aktivacije.append(np.fmin(p06, rizik_srednji))
+    aktivacije.append(np.fmin(p06, rizik_umeren))
 
-    # VISOK rizik
+    # KRITIČAN rizik
     p07 = z["pucanj"]
-    aktivacije.append(np.fmin(p07, rizik_visok))
+    aktivacije.append(np.fmin(p07, rizik_kritican))
 
-    p08 = min(v["visoka"], d["visoka"])
-    aktivacije.append(np.fmin(p08, rizik_visok))
+    p08 = min(v["jasna"], d["visoka"])
+    aktivacije.append(np.fmin(p08, rizik_kritican))
 
-    p09 = min(v["visoka"], p["retka"])
-    aktivacije.append(np.fmin(p09, rizik_visok))
+    p09 = min(v["jasna"], p["retka"])
+    aktivacije.append(np.fmin(p09, rizik_kritican))
 
-    p10 = min(z["pucanj"], v["srednja"])
-    aktivacije.append(np.fmin(p10, rizik_visok))
+    p10 = min(z["pucanj"], v["delimicna"])
+    aktivacije.append(np.fmin(p10, rizik_kritican))
 
     return np.fmax.reduce(aktivacije)
 
@@ -159,37 +159,37 @@ def kontroler_urgentnost(mu: dict) -> np.ndarray:
 
     aktivacije = []
 
-    # NISKA urgentnost
-    p01 = min(z["tisina"], v["niska"])
-    aktivacije.append(np.fmin(p01, urg_niska))
+    # MIRNA hitnost
+    p01 = min(z["tisina"], v["nejasna"])
+    aktivacije.append(np.fmin(p01, hitnost_mirna))
 
     p02 = min(d["niska"], p["gusta"])
-    aktivacije.append(np.fmin(p02, urg_niska))
+    aktivacije.append(np.fmin(p02, hitnost_mirna))
 
-    # SREDNJA urgentnost
+    # UMERENA hitnost
     p03 = min(z["sum"], d["srednja"])
-    aktivacije.append(np.fmin(p03, urg_srednja))
+    aktivacije.append(np.fmin(p03, hitnost_umerena))
 
-    p04 = min(v["srednja"], z["sum"])
-    aktivacije.append(np.fmin(p04, urg_srednja))
+    p04 = min(v["delimicna"], z["sum"])
+    aktivacije.append(np.fmin(p04, hitnost_umerena))
 
     p05 = min(d["visoka"], p["srednja"])
-    aktivacije.append(np.fmin(p05, urg_srednja))
+    aktivacije.append(np.fmin(p05, hitnost_umerena))
 
-    p06 = min(v["srednja"], d["srednja"])
-    aktivacije.append(np.fmin(p06, urg_srednja))
+    p06 = min(v["delimicna"], d["srednja"])
+    aktivacije.append(np.fmin(p06, hitnost_umerena))
 
-    # URGENTNO
+    # KRITIČNA hitnost
     p07 = z["pucanj"]
-    aktivacije.append(np.fmin(p07, urg_urgentna))
+    aktivacije.append(np.fmin(p07, hitnost_kriticna))
 
-    p08 = min(v["visoka"], d["visoka"])
-    aktivacije.append(np.fmin(p08, urg_urgentna))
+    p08 = min(v["jasna"], d["visoka"])
+    aktivacije.append(np.fmin(p08, hitnost_kriticna))
 
-    p09 = min(v["visoka"], z["pucanj"], p["retka"])
-    aktivacije.append(np.fmin(p09, urg_urgentna))
+    p09 = min(v["jasna"], z["pucanj"], p["retka"])
+    aktivacije.append(np.fmin(p09, hitnost_kriticna))
 
     p10 = min(z["pucanj"], d["visoka"])
-    aktivacije.append(np.fmin(p10, urg_urgentna))
+    aktivacije.append(np.fmin(p10, hitnost_kriticna))
 
     return np.fmax.reduce(aktivacije)
