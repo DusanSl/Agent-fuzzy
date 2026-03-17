@@ -3,114 +3,109 @@ import numpy as np
 import skfuzzy as fuzz
 import matplotlib.pyplot as plt
 
-# ─────────────────────────────────────────
-# Universum za svaki ulaz  [0.0 – 1.0]
-# ─────────────────────────────────────────
-x_visual  = np.arange(0, 1.01, 0.01)   # visual confidence
-x_sound   = np.arange(0, 1.01, 0.01)   # sound intensity
-x_cover   = np.arange(0, 1.01, 0.01)   # cover density
-x_detect  = np.arange(0, 1.01, 0.01)   # detection probability
+# Univerzumi za ulaze
 
-# Universum za izlaze
-x_engage  = np.arange(0, 1.01, 0.01)   # engagement confidence
-x_risk    = np.arange(0, 1.01, 0.01)   # risk level
-x_urgency = np.arange(0, 1.01, 0.01)   # escalation urgency
+x_vizuelna    = np.arange(0, 1.01, 0.01)   # vizuelna pouzdanost
+x_zvuk        = np.arange(0, 1.01, 0.01)   # intenzitet zvuka
+x_pokrivenost = np.arange(0, 1.01, 0.01)   # gustina pokrivenosti
+x_detekcija   = np.arange(0, 1.01, 0.01)   # verovatnoća detekcije
 
-# ─────────────────────────────────────────
+# Univerzumi za izlaze
+x_ang         = np.arange(0, 1.01, 0.01)   # angažovanje
+x_rizik       = np.arange(0, 1.01, 0.01)   # nivo rizika
+x_urgentnost  = np.arange(0, 1.01, 0.01)   # urgentnost eskalacije
+
 # ULAZI
-# ─────────────────────────────────────────
 
-# Visual confidence: koliko agent "vidi" intrudera
-visual_low    = fuzz.trapmf(x_visual, [0.0, 0.0, 0.2, 0.4])
-visual_medium = fuzz.trimf (x_visual, [0.3, 0.5, 0.7])
-visual_high   = fuzz.trapmf(x_visual, [0.6, 0.8, 1.0, 1.0])
+vizuelna_nejasna  = fuzz.trapmf(x_vizuelna, [0.0, 0.0, 0.2, 0.4])
+vizuelna_delimicna = fuzz.trimf (x_vizuelna, [0.3, 0.5, 0.7])
+vizuelna_jasna    = fuzz.trapmf(x_vizuelna, [0.6, 0.8, 1.0, 1.0])
 
-# Sound intensity: tišina / šum / pucanj
-sound_silence = fuzz.trapmf(x_sound, [0.0, 0.0, 0.1, 0.3])
-sound_noise   = fuzz.trimf (x_sound, [0.2, 0.5, 0.8])
-sound_gunshot = fuzz.trapmf(x_sound, [0.7, 0.9, 1.0, 1.0])
+zvuk_tisina = fuzz.trapmf(x_zvuk, [0.0, 0.0, 0.1, 0.3])
+zvuk_sum    = fuzz.trimf (x_zvuk, [0.2, 0.5, 0.8])
+zvuk_pucanj = fuzz.trapmf(x_zvuk, [0.7, 0.9, 1.0, 1.0])
 
-# Cover density: koliko je intruder sakriven
-cover_sparse  = fuzz.trapmf(x_cover, [0.0, 0.0, 0.2, 0.4])
-cover_medium  = fuzz.trimf (x_cover, [0.3, 0.5, 0.7])
-cover_dense   = fuzz.trapmf(x_cover, [0.6, 0.8, 1.0, 1.0])
+pokr_retka   = fuzz.trapmf(x_pokrivenost, [0.0, 0.0, 0.2, 0.4])
+pokr_srednja = fuzz.trimf (x_pokrivenost, [0.3, 0.5, 0.7])
+pokr_gusta   = fuzz.trapmf(x_pokrivenost, [0.6, 0.8, 1.0, 1.0])
 
-# Detection probability: ukupna verovatnoća detekcije
-detect_low    = fuzz.trapmf(x_detect, [0.0, 0.0, 0.2, 0.4])
-detect_medium = fuzz.trimf (x_detect, [0.3, 0.5, 0.7])
-detect_high   = fuzz.trapmf(x_detect, [0.6, 0.8, 1.0, 1.0])
+det_niska   = fuzz.trapmf(x_detekcija, [0.0, 0.0, 0.2, 0.4])
+det_srednja = fuzz.trimf (x_detekcija, [0.3, 0.5, 0.7])
+det_visoka  = fuzz.trapmf(x_detekcija, [0.6, 0.8, 1.0, 1.0])
 
-# ─────────────────────────────────────────
 # IZLAZI
-# ─────────────────────────────────────────
 
-# Engagement confidence: ignore / search / mark
-engage_ignore = fuzz.trapmf(x_engage, [0.0, 0.0, 0.2, 0.4])
-engage_search = fuzz.trimf (x_engage, [0.3, 0.5, 0.7])
-engage_mark   = fuzz.trapmf(x_engage, [0.6, 0.8, 1.0, 1.0])
+ang_ignorisi = fuzz.trapmf(x_ang, [0.0, 0.0, 0.2, 0.4])
+ang_trazi    = fuzz.trimf (x_ang, [0.3, 0.5, 0.7])
+ang_oznaci   = fuzz.trapmf(x_ang, [0.6, 0.8, 1.0, 1.0])
 
-# Risk level
-risk_low    = fuzz.trapmf(x_risk, [0.0, 0.0, 0.2, 0.4])
-risk_medium = fuzz.trimf (x_risk, [0.3, 0.5, 0.7])
-risk_high   = fuzz.trapmf(x_risk, [0.6, 0.8, 1.0, 1.0])
+rizik_bezopasan = fuzz.trapmf(x_rizik, [0.0, 0.0, 0.2, 0.4])
+rizik_umeren    = fuzz.trimf (x_rizik, [0.3, 0.5, 0.7])
+rizik_kritican  = fuzz.trapmf(x_rizik, [0.6, 0.8, 1.0, 1.0])
 
-# Escalation urgency
-urgency_low    = fuzz.trapmf(x_urgency, [0.0, 0.0, 0.2, 0.4])
-urgency_medium = fuzz.trimf (x_urgency, [0.3, 0.5, 0.7])
-urgency_urgent = fuzz.trapmf(x_urgency, [0.6, 0.8, 1.0, 1.0])
+hitnost_mirna    = fuzz.trapmf(x_urgentnost, [0.0, 0.0, 0.2, 0.4])
+hitnost_umerena  = fuzz.trimf (x_urgentnost, [0.3, 0.5, 0.7])
+hitnost_kriticna = fuzz.trapmf(x_urgentnost, [0.6, 0.8, 1.0, 1.0])
 
 
-# ─────────────────────────────────────────
-# Helper: interp — uzima μ vrednost za dati x
-# ─────────────────────────────────────────
-def get_membership(x_universe, mf, value: float) -> float:
-    return float(fuzz.interp_membership(x_universe, mf, value))
+def get_membership(x_universe, mf, vrednost: float) -> float:
+    return float(fuzz.interp_membership(x_universe, mf, vrednost))
 
-
-# ─────────────────────────────────────────
-# Plot svih membership funkcija
-# ─────────────────────────────────────────
 def plot_all():
     fig, axes = plt.subplots(4, 2, figsize=(12, 14))
-    fig.suptitle("FuzzySnitchAI — Membership Functions", fontsize=14)
+    fig.suptitle("FuzzySnitch — Membership funkcije", fontsize=14)
 
-    sets = [
-        (axes[0, 0], x_visual,  [visual_low, visual_medium, visual_high],
-         ["low", "medium", "high"], "Visual Confidence"),
+    skupovi = [
+        (axes[0, 0], x_vizuelna,
+         [vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna],
+         ["nejasna", "delimična", "jasna"],
+         "Vizuelna pouzdanost"),
 
-        (axes[1, 0], x_sound,   [sound_silence, sound_noise, sound_gunshot],
-         ["silence", "noise", "gunshot"], "Sound Intensity"),
+        (axes[1, 0], x_zvuk,
+         [zvuk_tisina, zvuk_sum, zvuk_pucanj],
+         ["tišina", "šum", "pucanj"],
+         "Intenzitet zvuka"),
 
-        (axes[2, 0], x_cover,   [cover_sparse, cover_medium, cover_dense],
-         ["sparse", "medium", "dense"], "Cover Density"),
+        (axes[2, 0], x_pokrivenost,
+         [pokr_retka, pokr_srednja, pokr_gusta],
+         ["retka", "srednja", "gusta"],
+         "Pokrivenost"),
 
-        (axes[3, 0], x_detect,  [detect_low, detect_medium, detect_high],
-         ["low", "medium", "high"], "Detection Probability"),
+        (axes[3, 0], x_detekcija,
+         [det_niska, det_srednja, det_visoka],
+         ["niska", "srednja", "visoka"],
+         "Verovatnoća detekcije"),
 
-        (axes[0, 1], x_engage,  [engage_ignore, engage_search, engage_mark],
-         ["ignore", "search", "mark"], "Engagement Confidence"),
+        (axes[0, 1], x_ang,
+         [ang_ignorisi, ang_trazi, ang_oznaci],
+         ["ignoriši", "traži", "označi"],
+         "Angažovanje"),
 
-        (axes[1, 1], x_risk,    [risk_low, risk_medium, risk_high],
-         ["low", "medium", "high"], "Risk Level"),
+        (axes[1, 1], x_rizik,
+         [rizik_bezopasan, rizik_umeren, rizik_kritican],
+         ["bezopasan", "umeren", "kritičan"],
+         "Nivo rizika"),
 
-        (axes[2, 1], x_urgency, [urgency_low, urgency_medium, urgency_urgent],
-         ["low", "medium", "urgent"], "Escalation Urgency"),
+        (axes[2, 1], x_urgentnost,
+         [hitnost_mirna, hitnost_umerena, hitnost_kriticna],
+         ["mirna", "umerena", "kritična"],
+         "Urgentnost eskalacije"),
     ]
 
-    colors = ["#4A90D9", "#27AE60", "#E74C3C"]
+    boje = ["#4A90D9", "#27AE60", "#E74C3C"]
 
-    for ax, x_univ, mfs, labels, title in sets:
-        for mf, label, color in zip(mfs, labels, colors):
-            ax.plot(x_univ, mf, color=color, linewidth=2, label=label)
-            ax.fill_between(x_univ, mf, alpha=0.08, color=color)
-        ax.set_title(title, fontsize=11)
+    for ax, x_univ, mfs, labele, naslov in skupovi:
+        for mf, labela, boja in zip(mfs, labele, boje):
+            ax.plot(x_univ, mf, color=boja, linewidth=2, label=labela)
+            ax.fill_between(x_univ, mf, alpha=0.08, color=boja)
+        ax.set_title(naslov, fontsize=11)
         ax.set_ylim(-0.05, 1.15)
         ax.set_xlabel("x")
         ax.set_ylabel("μ(x)")
         ax.legend(fontsize=9)
         ax.grid(True, alpha=0.3)
 
-    # Sakrij prazan subplot (4,2 = 8 mesta, mi imamo 7)
+    # Sakrij prazan subplot (4x2 = 8 mesta, imamo 7)
     axes[3, 1].set_visible(False)
 
     plt.tight_layout()
@@ -118,24 +113,34 @@ def plot_all():
 
 
 if __name__ == "__main__":
-    # Brzi test vrednosti
-    test_cases = [
-        ("visual_conf = 0.72", x_visual, [visual_low, visual_medium, visual_high],   ["low", "medium", "high"]),
-        ("sound_level = 0.90", x_sound,  [sound_silence, sound_noise, sound_gunshot],["silence", "noise", "gunshot"]),
-        ("cover        = 0.35", x_cover, [cover_sparse, cover_medium, cover_dense],  ["sparse", "medium", "dense"]),
-        ("detect_prob  = 0.60", x_detect,[detect_low, detect_medium, detect_high],   ["low", "medium", "high"]),
+    test_slucajevi = [
+        ("Vizuelna pouzdanost = 0.72", x_vizuelna,
+         [vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna],
+         ["nejasna", "delimična", "jasna"]),
+
+        ("Intenzitet zvuka    = 0.90", x_zvuk,
+         [zvuk_tisina, zvuk_sum, zvuk_pucanj],
+         ["tišina", "šum", "pucanj"]),
+
+        ("Pokrivenost         = 0.35", x_pokrivenost,
+         [pokr_retka, pokr_srednja, pokr_gusta],
+         ["retka", "srednja", "gusta"]),
+
+        ("Verovatnoća det.    = 0.60", x_detekcija,
+         [det_niska, det_srednja, det_visoka],
+         ["niska", "srednja", "visoka"]),
     ]
 
-    values = [0.72, 0.90, 0.35, 0.60]
+    vrednosti = [0.72, 0.90, 0.35, 0.60]
 
-    print("=" * 45)
-    print("  Membership vrednosti — test ulazi")
-    print("=" * 45)
-    for (label, x_u, mfs, names), val in zip(test_cases, values):
-        print(f"\n{label}")
-        for mf, name in zip(mfs, names):
+    print("=" * 48)
+    print("  FuzzySnitch — Membership vrednosti")
+    print("=" * 48)
+    for (labela, x_u, mfs, imena), val in zip(test_slucajevi, vrednosti):
+        print(f"\n{labela}")
+        for mf, ime in zip(mfs, imena):
             mu = get_membership(x_u, mf, val)
-            bar = "█" * int(mu * 20)
-            print(f"  {name:<10} μ = {mu:.3f}  {bar}")
+            traka = "█" * int(mu * 20)
+            print(f"  {ime:<12} μ = {mu:.3f}  {traka}")
 
     plot_all()
