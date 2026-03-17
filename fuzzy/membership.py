@@ -17,9 +17,9 @@ x_urgentnost  = np.arange(0, 1.01, 0.01)   # urgentnost eskalacije
 
 # ULAZI
 
-vizuelna_niska   = fuzz.trapmf(x_vizuelna, [0.0, 0.0, 0.2, 0.4])
-vizuelna_srednja = fuzz.trimf (x_vizuelna, [0.3, 0.5, 0.7])
-vizuelna_visoka  = fuzz.trapmf(x_vizuelna, [0.6, 0.8, 1.0, 1.0])
+vizuelna_nejasna  = fuzz.trapmf(x_vizuelna, [0.0, 0.0, 0.2, 0.4])
+vizuelna_delimicna = fuzz.trimf (x_vizuelna, [0.3, 0.5, 0.7])
+vizuelna_jasna    = fuzz.trapmf(x_vizuelna, [0.6, 0.8, 1.0, 1.0])
 
 zvuk_tisina = fuzz.trapmf(x_zvuk, [0.0, 0.0, 0.1, 0.3])
 zvuk_sum    = fuzz.trimf (x_zvuk, [0.2, 0.5, 0.8])
@@ -39,13 +39,13 @@ ang_ignorisi = fuzz.trapmf(x_ang, [0.0, 0.0, 0.2, 0.4])
 ang_trazi    = fuzz.trimf (x_ang, [0.3, 0.5, 0.7])
 ang_oznaci   = fuzz.trapmf(x_ang, [0.6, 0.8, 1.0, 1.0])
 
-rizik_nizak   = fuzz.trapmf(x_rizik, [0.0, 0.0, 0.2, 0.4])
-rizik_srednji = fuzz.trimf (x_rizik, [0.3, 0.5, 0.7])
-rizik_visok   = fuzz.trapmf(x_rizik, [0.6, 0.8, 1.0, 1.0])
+rizik_bezopasan = fuzz.trapmf(x_rizik, [0.0, 0.0, 0.2, 0.4])
+rizik_umeren    = fuzz.trimf (x_rizik, [0.3, 0.5, 0.7])
+rizik_kritican  = fuzz.trapmf(x_rizik, [0.6, 0.8, 1.0, 1.0])
 
-urg_niska    = fuzz.trapmf(x_urgentnost, [0.0, 0.0, 0.2, 0.4])
-urg_srednja  = fuzz.trimf (x_urgentnost, [0.3, 0.5, 0.7])
-urg_urgentna = fuzz.trapmf(x_urgentnost, [0.6, 0.8, 1.0, 1.0])
+hitnost_mirna    = fuzz.trapmf(x_urgentnost, [0.0, 0.0, 0.2, 0.4])
+hitnost_umerena  = fuzz.trimf (x_urgentnost, [0.3, 0.5, 0.7])
+hitnost_kriticna = fuzz.trapmf(x_urgentnost, [0.6, 0.8, 1.0, 1.0])
 
 
 def get_membership(x_universe, mf, vrednost: float) -> float:
@@ -57,8 +57,8 @@ def plot_all():
 
     skupovi = [
         (axes[0, 0], x_vizuelna,
-         [vizuelna_niska, vizuelna_srednja, vizuelna_visoka],
-         ["niska", "srednja", "visoka"],
+         [vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna],
+         ["nejasna", "delimična", "jasna"],
          "Vizuelna pouzdanost"),
 
         (axes[1, 0], x_zvuk,
@@ -82,13 +82,13 @@ def plot_all():
          "Angažovanje"),
 
         (axes[1, 1], x_rizik,
-         [rizik_nizak, rizik_srednji, rizik_visok],
-         ["nizak", "srednji", "visok"],
+         [rizik_bezopasan, rizik_umeren, rizik_kritican],
+         ["bezopasan", "umeren", "kritičan"],
          "Nivo rizika"),
 
         (axes[2, 1], x_urgentnost,
-         [urg_niska, urg_srednja, urg_urgentna],
-         ["niska", "srednja", "urgentna"],
+         [hitnost_mirna, hitnost_umerena, hitnost_kriticna],
+         ["mirna", "umerena", "kritična"],
          "Urgentnost eskalacije"),
     ]
 
@@ -115,8 +115,8 @@ def plot_all():
 if __name__ == "__main__":
     test_slucajevi = [
         ("Vizuelna pouzdanost = 0.72", x_vizuelna,
-         [vizuelna_niska, vizuelna_srednja, vizuelna_visoka],
-         ["niska", "srednja", "visoka"]),
+         [vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna],
+         ["nejasna", "delimična", "jasna"]),
 
         ("Intenzitet zvuka    = 0.90", x_zvuk,
          [zvuk_tisina, zvuk_sum, zvuk_pucanj],
