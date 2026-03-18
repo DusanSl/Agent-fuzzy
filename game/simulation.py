@@ -148,11 +148,15 @@ class Igrica:
             self.zvuk_val = max(self.zvuk_val, zvuk_koraka)
         self.zvuk_val = max(0.0, self.zvuk_val - 0.008)
 
+        ugao_do_igraca = self.ugao_do(self.snitch_pos, self.igrac_pos)
+        ugaona_razlika = abs((ugao_do_igraca - self.snitch_ugao + 180) % 360 - 180)
+
         return {
             "vizuelna": round(min(vizuelna, 1.0), 3),
             "zvuk": round(min(self.zvuk_val, 1.0), 3),
             "pokrivenost": round(min(pokrivenost, 1.0), 3),
             "detekcija": round(min(detekcija, 1.0), 3),
+            "ugao":       round(ugaona_razlika, 1),
         }
 
     # ─────────────────────────────────────────

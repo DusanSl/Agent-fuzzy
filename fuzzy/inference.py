@@ -13,14 +13,15 @@ from fuzzy.defuzz import (
     ispisi_izlaze,
 )
 
-
 def pokreni_fis(
     vizuelna: float,
     zvuk: float,
     pokrivenost: float,
     detekcija: float,
+    ugao: float = 90.0,        # ← dodaj ovo
     ispisi: bool = False,
 ) -> dict:
+    mu = fuzzifikuj(vizuelna, zvuk, pokrivenost, detekcija, ugao)
 
     # Korak 1 — Fuzzifikacija
     mu = fuzzifikuj(vizuelna, zvuk, pokrivenost, detekcija)

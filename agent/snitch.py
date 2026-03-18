@@ -18,21 +18,15 @@ class Snitch:
         self.pokrivenost      = 0.0
         self.detekcija        = 0.0
 
-    def proceni(
-        self,
-        vizuelna: float,
-        zvuk: float,
-        pokrivenost: float,
-        detekcija: float,
-        ispisi: bool = False,
-    ) -> StanjeSnitcha:
+    def proceni(self, vizuelna, zvuk, pokrivenost, detekcija, ugao=90.0, ispisi=False):
 
         self.vizuelna    = vizuelna
         self.zvuk        = zvuk
         self.pokrivenost = pokrivenost
         self.detekcija   = detekcija
+        self.ugao        = ugao
 
-        rezultat = pokreni_fis(vizuelna, zvuk, pokrivenost, detekcija, ispisi=ispisi)
+        rezultat = pokreni_fis(vizuelna, zvuk, pokrivenost, detekcija, ugao, ispisi=ispisi)
 
         self.angazovanje = rezultat["angazovanje"]
         self.rizik       = rezultat["rizik"]
