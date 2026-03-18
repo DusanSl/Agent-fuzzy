@@ -105,8 +105,8 @@ class Igrica:
     # FIS ulazi
     # ─────────────────────────────────────────
     def izracunaj_ulaze(self) -> dict:
-        dist      = self.distanca(self.snitch_pos, self.igrac_pos)
-        u_konusu  = self.u_konusu()
+        dist = self.distanca(self.snitch_pos, self.igrac_pos)
+        u_konusu = self.u_konusu()
         iza_zbuna = self.iza_zbuna()
 
         # Vizuelna pouzdanost
@@ -122,49 +122,85 @@ class Igrica:
         if iza_zbuna:
             detekcija *= 0.55
 
-        # Pokrivenost
-        pokrivenost = 0.75 if iza_zbuna else max(0.1, dist / 600)
+        # Pokrivenost — fizička skrivenost, nezavisna od konusa
+        # Umesto if/else skokova, koristimo interpolaciju
+        # Žbun — blago povećava pokrivenost, ne skokovito
+        zbun_faktor = 0.0
+        for (bx, by, br) in ZBUNJEVI:
+            d = self.distanca(self.igrac_pos, (bx, by))
+            if d < br + 30:
+                # Što si bliže centru žbuna, veća pokrivenost — glatko
+                zbun_faktor = max(zbun_faktor, 1.0 - (d / (br + 30)))
+
+        # Distanca pruža prirodnu pokrivenost
+        dist_faktor = min(1.0, dist / 600)
+
+        # Kretanje smanjuje pokrivenost
+        kretanje_faktor = 0.2 if self.igrac_krece else 0.0
+
+        # Kombinuj sve glatko
+        pokrivenost = min(1.0, dist_faktor * 0.4 + zbun_faktor * 0.6 - kretanje_faktor)
+        pokrivenost = max(0.0, pokrivenost)
 
         # Zvuk — koraci + pucanj, opada vremenom
         if self.igrac_krece:
-            self.zvuk_val = max(self.zvuk_val, ZVUK_KORAKA_BASE)
+            zvuk_koraka = ZVUK_KORAKA_BASE * (1.0 - min(1.0, dist / 600))
+            self.zvuk_val = max(self.zvuk_val, zvuk_koraka)
         self.zvuk_val = max(0.0, self.zvuk_val - 0.008)
 
         return {
-            "vizuelna":    round(min(vizuelna,      1.0), 3),
-            "zvuk":        round(min(self.zvuk_val, 1.0), 3),
-            "pokrivenost": round(min(pokrivenost,   1.0), 3),
-            "detekcija":   round(min(detekcija,     1.0), 3),
+            "vizuelna": round(min(vizuelna, 1.0), 3),
+            "zvuk": round(min(self.zvuk_val, 1.0), 3),
+            "pokrivenost": round(min(pokrivenost, 1.0), 3),
+            "detekcija": round(min(detekcija, 1.0), 3),
         }
 
     # ─────────────────────────────────────────
     # Logika stanja
     # ─────────────────────────────────────────
-    def azuriraj_stanje(self, novo_stanje: StanjeSnitcha):
-        u_konusu  = self.u_konusu()
+    def azuriraj_stanje(self, novo_stanje: StanjeSnitcha, zvuk: float):
+        u_konusu = self.u_konusu()
         iza_zbuna = self.iza_zbuna()
 
-        # Tajmer vidljivosti
+        # Tajmer vidljivosti — raste i u UPOZORENJE stanju
         if u_konusu and not iza_zbuna:
             self.vidi_tajmer += 1
         elif u_konusu and iza_zbuna:
             self.vidi_tajmer = max(0, self.vidi_tajmer - 1)
         else:
-            self.vidi_tajmer = max(0, self.vidi_tajmer - 3)
+            # U UPOZORENJE stanju opada sporije — snitch je već sumnjičav
+            if self.stanje == StanjeSnitcha.UPOZORENJE:
+                self.vidi_tajmer = max(0, self.vidi_tajmer - 1)
+            else:
+                self.vidi_tajmer = max(0, self.vidi_tajmer - 3)
 
-        # POTVRĐENO — tajmer dostigao delay
-        if self.vidi_tajmer >= DELAY_POTVRDJENO:
-            self.stanje            = StanjeSnitcha.POTVRĐENO
+        # POTVRĐENO — tajmer dostigao delay (radi i iz UPOZORENJE stanja)
+        if u_konusu and not iza_zbuna:
+            self.stanje = StanjeSnitcha.POTVRĐENO
             self.potvrdjeno_tajmer = TRAJANJE_POTVRDJENO
-            self.warning_centar    = None
-            self.warning_tajmer    = 0
+            self.warning_centar = None
+            self.warning_tajmer = 0
+            self.vidi_tajmer = 0
 
-        # UPOZORENJE — u konusu iza žbuna ili FIS kaže upozorenje
+        # UPOZORENJE
         elif novo_stanje == StanjeSnitcha.UPOZORENJE or (u_konusu and iza_zbuna):
             if self.stanje != StanjeSnitcha.POTVRĐENO:
                 self.stanje = StanjeSnitcha.UPOZORENJE
+
+                # Ako čuje pucanj dok već kruži — skoči na novu poziciju
+                if zvuk >= 0.9 and self.warning_centar is not None:
+                    self.warning_centar = tuple(map(int, self.igrac_pos))
+                    self.warning_tajmer = TRAJANJE_WARNING
+
+                # Novi warning — postavi centar
                 if self.warning_centar is None:
-                    self.warning_centar = tuple(self.igrac_pos)
+                    # Zapamti koji signal je aktivirao upozorenje
+                    self.aktivacioni_zvuk = zvuk
+                    self.aktivaciona_vizuelna = self.snitch.angazovanje
+                    if zvuk > 0.1:
+                        self.warning_centar = tuple(map(int, self.igrac_pos))
+                    else:
+                        self.warning_centar = tuple(map(int, self.snitch_pos))
                     self.warning_tajmer = TRAJANJE_WARNING
 
         # MIRNO
@@ -177,14 +213,14 @@ class Igrica:
             self.potvrdjeno_tajmer -= 1
             if self.potvrdjeno_tajmer == 0:
                 self.vidi_tajmer = 0
-                self.stanje      = StanjeSnitcha.MIRNO
+                self.stanje = StanjeSnitcha.MIRNO
 
         # Odbrojavanje — UPOZORENJE
         if self.warning_tajmer > 0 and self.stanje == StanjeSnitcha.UPOZORENJE:
             self.warning_tajmer -= 1
             if self.warning_tajmer == 0:
                 self.warning_centar = None
-                self.stanje         = StanjeSnitcha.MIRNO
+                self.stanje = StanjeSnitcha.MIRNO
 
     # ─────────────────────────────────────────
     # Kretanje Snitcha
@@ -265,7 +301,7 @@ class Igrica:
                 pokrivenost=ulazi["pokrivenost"],
                 detekcija=ulazi["detekcija"],
             )
-            self.azuriraj_stanje(novo_stanje)
+            self.azuriraj_stanje(novo_stanje, ulazi["zvuk"])
 
             boja_stanja = BOJE_STANJA[self.stanje]
             self.ekran.fill(BOJA_POZADINE)
