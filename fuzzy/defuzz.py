@@ -8,7 +8,8 @@ from fuzzy.membership import (
 
 def defuzzifikuj_centroid(x_universe: np.ndarray, agg_mf: np.ndarray) -> float:
 
-    # Centroid (COA) metoda defuzzifikacije.
+    if agg_mf.max() == 0:
+        return 0.0
     return float(fuzz.defuzz(x_universe, agg_mf, "centroid"))
 
 
