@@ -1,2 +1,2 @@
 # fuzzy/__init__.py
-from fuzzy.inference import pokreni_fis
+from .inference import pokreni_fis

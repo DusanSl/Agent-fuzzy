@@ -2,3 +2,4 @@ scikit-fuzzy
 numpy
 matplotlib
 scipy
+pygame
