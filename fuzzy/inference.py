@@ -21,10 +21,9 @@ def pokreni_fis(
     ugao: float = 90.0,        # ← dodaj ovo
     ispisi: bool = False,
 ) -> dict:
-    mu = fuzzifikuj(vizuelna, zvuk, pokrivenost, detekcija, ugao)
 
     # Korak 1 — Fuzzifikacija
-    mu = fuzzifikuj(vizuelna, zvuk, pokrivenost, detekcija)
+    mu = fuzzifikuj(vizuelna, zvuk, pokrivenost, detekcija, ugao)
 
     # Korak 2 — 3 Mamdani kontrolera (agregacija pravila)
     agg_angazovanje = kontroler_angazovanje(mu)

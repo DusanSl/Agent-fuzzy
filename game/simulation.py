@@ -304,6 +304,7 @@ class Igrica:
                 zvuk=ulazi["zvuk"],
                 pokrivenost=ulazi["pokrivenost"],
                 detekcija=ulazi["detekcija"],
+                ugao=ulazi["ugao"]
             )
             self.azuriraj_stanje(novo_stanje, ulazi["zvuk"])
 
