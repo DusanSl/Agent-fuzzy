@@ -4,8 +4,8 @@ import numpy as np
 from fuzzy.rules import (
     fuzzifikuj,
     kontroler_angazovanje,
-    kontroler_rizik,
-    kontroler_urgentnost,
+    kontroler_brzina,
+    kontroler_upornost,
 )
 from fuzzy.defuzz import (
     defuzzifikuj_sve,
@@ -13,13 +13,14 @@ from fuzzy.defuzz import (
     ispisi_izlaze,
 )
 
+
 def pokreni_fis(
-    vizuelna: float,
-    zvuk: float,
+    vizuelna:    float,
+    zvuk:        float,
     pokrivenost: float,
-    detekcija: float,
-    ugao: float = 90.0,        # ← dodaj ovo
-    ispisi: bool = False,
+    detekcija:   float,
+    ugao:        float = 90.0,
+    ispisi:      bool  = False,
 ) -> dict:
 
     # Korak 1 — Fuzzifikacija
@@ -27,11 +28,11 @@ def pokreni_fis(
 
     # Korak 2 — 3 Mamdani kontrolera (agregacija pravila)
     agg_angazovanje = kontroler_angazovanje(mu)
-    agg_rizik       = kontroler_rizik(mu)
-    agg_urgentnost  = kontroler_urgentnost(mu)
+    agg_brzina      = kontroler_brzina(mu)
+    agg_upornost    = kontroler_upornost(mu)
 
     # Korak 3 — Defuzzifikacija (Centroid COA)
-    izlazi = defuzzifikuj_sve(agg_angazovanje, agg_rizik, agg_urgentnost)
+    izlazi = defuzzifikuj_sve(agg_angazovanje, agg_brzina, agg_upornost)
 
     # Korak 4 — Određivanje stanja Snitcha
     stanje = odredi_stanje(izlazi)
@@ -41,7 +42,7 @@ def pokreni_fis(
 
     return {
         "angazovanje": izlazi["angazovanje"],
-        "rizik":       izlazi["rizik"],
-        "urgentnost":  izlazi["urgentnost"],
+        "brzina":      izlazi["brzina"],
+        "upornost":    izlazi["upornost"],
         "stanje":      stanje,
     }

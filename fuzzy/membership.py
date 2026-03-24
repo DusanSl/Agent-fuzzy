@@ -13,9 +13,9 @@ x_detekcija   = np.arange(0, 1.01, 0.01)   # verovatnoća detekcije [0, 1]
 x_ugao        = np.arange(0, 181,  1)      # ugaona razlika        [0°, 180°]
 
 # Univerzumi za izlaze
-x_ang         = np.arange(0, 1.01, 0.01)   # angažovanje
-x_rizik       = np.arange(0, 1.01, 0.01)   # nivo rizika
-x_urgentnost  = np.arange(0, 1.01, 0.01)   # urgentnost eskalacije
+x_ang      = np.arange(0, 1.01, 0.01)   # engagement confidence
+x_brzina   = np.arange(0, 1.01, 0.01)   # brzina kretanja
+x_upornost = np.arange(0, 1.01, 0.01)   # upornost / vreme pretrage
 
 # ─────────────────────────────────────────
 # ULAZNE MF
@@ -50,20 +50,20 @@ ugao_iza    = fuzz.trapmf(x_ugao, [120, 150, 180, 180])  # iza leđa
 # IZLAZNE MF
 # ─────────────────────────────────────────
 
-# Angažovanje
+# Angažovanje  (Ignorisi / Traži / Označi)
 ang_ignorisi = fuzz.trapmf(x_ang, [0.0, 0.0, 0.2, 0.4])
 ang_trazi    = fuzz.trimf (x_ang, [0.3, 0.5, 0.7])
 ang_oznaci   = fuzz.trapmf(x_ang, [0.6, 0.8, 1.0, 1.0])
 
-# Nivo rizika
-rizik_bezopasan = fuzz.trapmf(x_rizik, [0.0, 0.0, 0.2, 0.4])
-rizik_umeren    = fuzz.trimf (x_rizik, [0.3, 0.5, 0.7])
-rizik_kritican  = fuzz.trapmf(x_rizik, [0.6, 0.8, 1.0, 1.0])
+# Brzina kretanja  (Patrolna / Oprezna / Fokusirana)
+brzina_patrolna   = fuzz.trapmf(x_brzina, [0.0, 0.0, 0.2, 0.4])
+brzina_oprezna    = fuzz.trimf (x_brzina, [0.3, 0.5, 0.7])
+brzina_fokusirana = fuzz.trapmf(x_brzina, [0.6, 0.8, 1.0, 1.0])
 
-# Urgentnost eskalacije
-hitnost_mirna    = fuzz.trapmf(x_urgentnost, [0.0, 0.0, 0.2, 0.4])
-hitnost_umerena  = fuzz.trimf (x_urgentnost, [0.3, 0.5, 0.7])
-hitnost_kriticna = fuzz.trapmf(x_urgentnost, [0.6, 0.8, 1.0, 1.0])
+# Upornost pretrage  (Kratkotrajna / Zadržana / Uporna)
+upor_kratkotrajna = fuzz.trapmf(x_upornost, [0.0, 0.0, 0.2, 0.4])
+upor_zadrzana     = fuzz.trimf (x_upornost, [0.3, 0.5, 0.7])
+upor_uporna       = fuzz.trapmf(x_upornost, [0.6, 0.8, 1.0, 1.0])
 
 # ─────────────────────────────────────────
 # Helper
@@ -108,15 +108,15 @@ def plot_all():
          ["ignoriši", "traži", "označi"],
          "Angažovanje"),
 
-        (axes[1, 1], x_rizik,
-         [rizik_bezopasan, rizik_umeren, rizik_kritican],
-         ["bezopasan", "umeren", "kritičan"],
-         "Nivo rizika"),
+        (axes[1, 1], x_brzina,
+         [brzina_patrolna, brzina_oprezna, brzina_fokusirana],
+         ["patrolna", "oprezna", "fokusirana"],
+         "Brzina kretanja"),
 
-        (axes[2, 1], x_urgentnost,
-         [hitnost_mirna, hitnost_umerena, hitnost_kriticna],
-         ["mirna", "umerena", "kritična"],
-         "Urgentnost eskalacije"),
+        (axes[2, 1], x_upornost,
+         [upor_kratkotrajna, upor_zadrzana, upor_uporna],
+         ["kratkotrajna", "zadržana", "uporna"],
+         "Upornost pretrage"),
     ]
 
     boje = ["#4A90D9", "#27AE60", "#E74C3C"]
@@ -171,6 +171,6 @@ if __name__ == "__main__":
         for mf, ime in zip(mfs, imena):
             mu = get_membership(x_u, mf, val)
             traka = "█" * int(mu * 20)
-            print(f"  {ime:<12} μ = {mu:.3f}  {traka}")
+            print(f"  {ime:<14} μ = {mu:.3f}  {traka}")
 
     plot_all()

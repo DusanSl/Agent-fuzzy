@@ -82,7 +82,6 @@ class Renderer:
         self.ekran.blit(self.font_m.render(
             "── ULAZI ───────────────────", True, (150, 150, 150)), (20, y)); y += 22
         for naziv_u, val in ulazi.items():
-            # Ugao je u stepenima [0, 180], ostali su [0, 1] — normalizuj za traku
             if naziv_u == "ugao":
                 traka_val = val / 180.0
                 prikaz = f"{val:.1f}°"
@@ -90,7 +89,7 @@ class Renderer:
                 traka_val = val
                 prikaz = f"{val:.2f} "
 
-            traka = "█" * int(traka_val * 15) + "░" * (15 - int(traka_val * 15))
+            traka  = "█" * int(traka_val * 15) + "░" * (15 - int(traka_val * 15))
             linija = f"{naziv_u:<14} {prikaz} {traka}"
             self.ekran.blit(self.font_m.render(linija, True, (200, 200, 200)), (20, y))
             y += 20
@@ -101,8 +100,8 @@ class Renderer:
             "── IZLAZI ──────────────────", True, (150, 150, 150)), (20, y)); y += 22
         for naziv_i, val in {
             "angazovanje": status["angazovanje"],
-            "rizik":       status["rizik"],
-            "urgentnost":  status["urgentnost"],
+            "brzina":      status["brzina"],
+            "upornost":    status["upornost"],
         }.items():
             traka  = "█" * int(val * 15) + "░" * (15 - int(val * 15))
             linija = f"{naziv_i:<14} {val:.2f} {traka}"

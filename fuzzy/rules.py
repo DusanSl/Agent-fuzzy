@@ -3,7 +3,7 @@ import numpy as np
 import skfuzzy as fuzz
 from fuzzy.membership import (
     x_vizuelna, x_zvuk, x_pokrivenost, x_detekcija, x_ugao,
-    x_ang, x_rizik, x_urgentnost,
+    x_ang, x_brzina, x_upornost,
     # Ulazne MF
     vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna,
     zvuk_tisina, zvuk_sum, zvuk_pucanj,
@@ -12,19 +12,19 @@ from fuzzy.membership import (
     ugao_ispred, ugao_bok, ugao_iza,
     # Izlazne MF
     ang_ignorisi, ang_trazi, ang_oznaci,
-    rizik_bezopasan, rizik_umeren, rizik_kritican,
-    hitnost_mirna, hitnost_umerena, hitnost_kriticna,
+    brzina_patrolna, brzina_oprezna, brzina_fokusirana,
+    upor_kratkotrajna, upor_zadrzana, upor_uporna,
     # Helper
     get_membership,
 )
 
 
 def fuzzifikuj(
-    vizuelna:   float,
-    zvuk:       float,
+    vizuelna:    float,
+    zvuk:        float,
     pokrivenost: float,
-    detekcija:  float,
-    ugao:       float = 90.0,   # ugaona razlika u stepenima [0°, 180°]
+    detekcija:   float,
+    ugao:        float = 90.0,   # ugaona razlika u stepenima [0°, 180°]
 ) -> dict:
     """Fuzzifikacija svih pet ulaznih promenljivih."""
     return {
@@ -57,7 +57,7 @@ def fuzzifikuj(
 
 
 # ─────────────────────────────────────────────────────────────────
-# Kontroler 1 — Angažovanje
+# Kontroler 1 — Angažovanje  (Ignorisi / Traži / Označi)
 # ─────────────────────────────────────────────────────────────────
 
 def kontroler_angazovanje(mu: dict) -> np.ndarray:
@@ -152,10 +152,10 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
 
 
 # ─────────────────────────────────────────────────────────────────
-# Kontroler 2 — Nivo rizika
+# Kontroler 2 — Brzina kretanja  (Patrolna / Oprezna / Fokusirana)
 # ─────────────────────────────────────────────────────────────────
 
-def kontroler_rizik(mu: dict) -> np.ndarray:
+def kontroler_brzina(mu: dict) -> np.ndarray:
     v = mu["vizuelna"]
     z = mu["zvuk"]
     p = mu["pokrivenost"]
@@ -164,81 +164,93 @@ def kontroler_rizik(mu: dict) -> np.ndarray:
 
     aktivacije = []
 
-    # --- BEZOPASAN ---
-    # Nejasna + tišina → nema signala
-    p01 = min(v["nejasna"], z["tisina"])
-    aktivacije.append(np.fmin(p01, rizik_bezopasan))
+    # --- PATROLNA (spora, rutinska) ---
+    # Tišina + nejasna → nema razloga za ubrzanje
+    p01 = min(z["tisina"], v["nejasna"])
+    aktivacije.append(np.fmin(p01, brzina_patrolna))
 
-    # Gusta pokrivenost + niska detekcija → dobro skriven
-    p02 = min(p["gusta"], d["niska"])
-    aktivacije.append(np.fmin(p02, rizik_bezopasan))
+    # Niska detekcija + gusta pokrivenost → situacija pod kontrolom
+    p02 = min(d["niska"], p["gusta"])
+    aktivacije.append(np.fmin(p02, brzina_patrolna))
 
-    # Iza leđa + nejasna → ne predstavlja pretnju
-    p03 = min(u["iza"], v["nejasna"])
-    aktivacije.append(np.fmin(p03, rizik_bezopasan))
+    # Iza leđa + tišina → nema razloga za promenu tempa
+    p03 = min(u["iza"], z["tisina"])
+    aktivacije.append(np.fmin(p03, brzina_patrolna))
 
-    # Iza leđa + tišina + gusta pokrivenost → idealno skriven
-    p04 = min(u["iza"], z["tisina"], p["gusta"])
-    aktivacije.append(np.fmin(p04, rizik_bezopasan))
+    # Iza leđa + niska detekcija → rutinska patrola
+    p04 = min(u["iza"], d["niska"])
+    aktivacije.append(np.fmin(p04, brzina_patrolna))
 
-    # --- UMEREN ---
-    # Delimična + šum → nešto se dešava
-    p05 = min(v["delimicna"], z["sum"])
-    aktivacije.append(np.fmin(p05, rizik_umeren))
+    # Nejasna + gusta pokrivenost → ne može da proceni, ostaje spor
+    p05 = min(v["nejasna"], p["gusta"])
+    aktivacije.append(np.fmin(p05, brzina_patrolna))
 
-    # Srednja detekcija → neutralna situacija
-    p06 = d["srednja"]
-    aktivacije.append(np.fmin(p06, rizik_umeren))
+    # --- OPREZNA (srednja, pažljiva) ---
+    # Šum + nejasna → čuje nešto, usporava i sluša
+    p06 = min(z["sum"], v["nejasna"])
+    aktivacije.append(np.fmin(p06, brzina_oprezna))
 
-    # Delimična + srednja detekcija → prati razvoj
+    # Delimična + srednja detekcija → prati signal oprezno
     p07 = min(v["delimicna"], d["srednja"])
-    aktivacije.append(np.fmin(p07, rizik_umeren))
+    aktivacije.append(np.fmin(p07, brzina_oprezna))
 
-    # Šum + retka pokrivenost → čuje se, nema zaklon
-    p08 = min(z["sum"], p["retka"])
-    aktivacije.append(np.fmin(p08, rizik_umeren))
+    # Šum + srednja detekcija → prati zvuk pažljivo
+    p08 = min(z["sum"], d["srednja"])
+    aktivacije.append(np.fmin(p08, brzina_oprezna))
 
-    # Sa boka + delimična → delimično izložen
+    # Sa boka + delimična vidljivost → polako kruži ka cilju
     p09 = min(u["bok"], v["delimicna"])
-    aktivacije.append(np.fmin(p09, rizik_umeren))
+    aktivacije.append(np.fmin(p09, brzina_oprezna))
 
-    # Sa boka + srednja detekcija → može biti primećen
-    p10 = min(u["bok"], d["srednja"])
-    aktivacije.append(np.fmin(p10, rizik_umeren))
+    # Delimična + retka pokrivenost → istražuje ali ne juri
+    p10 = min(v["delimicna"], p["retka"])
+    aktivacije.append(np.fmin(p10, brzina_oprezna))
 
-    # --- KRITIČAN ---
-    # Pucanj uvek → kritično
-    p11 = z["pucanj"]
-    aktivacije.append(np.fmin(p11, rizik_kritican))
+    # Sa boka + šum → orijentiše se prema zvuku
+    p11 = min(u["bok"], z["sum"])
+    aktivacije.append(np.fmin(p11, brzina_oprezna))
 
-    # Jasna + visoka detekcija → direktno otkriven
-    p12 = min(v["jasna"], d["visoka"])
-    aktivacije.append(np.fmin(p12, rizik_kritican))
+    # Srednja detekcija + srednja pokrivenost → prati uz oprez
+    p12 = min(d["srednja"], p["srednja"])
+    aktivacije.append(np.fmin(p12, brzina_oprezna))
 
-    # Jasna + retka pokrivenost → nema zaklona
-    p13 = min(v["jasna"], p["retka"])
-    aktivacije.append(np.fmin(p13, rizik_kritican))
+    # --- FOKUSIRANA (brza, direktna) ---
+    # Pucanj → maksimalna brzina reakcije
+    p13 = z["pucanj"]
+    aktivacije.append(np.fmin(p13, brzina_fokusirana))
 
-    # Pucanj + delimična → i delimično otkriven uz pucanj
-    p14 = min(z["pucanj"], v["delimicna"])
-    aktivacije.append(np.fmin(p14, rizik_kritican))
+    # Jasna + visoka detekcija → direktan kontakt, kreće se brzo
+    p14 = min(v["jasna"], d["visoka"])
+    aktivacije.append(np.fmin(p14, brzina_fokusirana))
 
-    # Ispred + jasna + retka pokrivenost → maksimalna izloženost
-    p15 = min(u["ispred"], v["jasna"], p["retka"])
-    aktivacije.append(np.fmin(p15, rizik_kritican))
+    # Jasna + retka pokrivenost → nema zaklona, treba brzo delovati
+    p15 = min(v["jasna"], p["retka"])
+    aktivacije.append(np.fmin(p15, brzina_fokusirana))
 
-    # Ispred + visoka detekcija → nema šanse za skrivanje
-    p16 = min(u["ispred"], d["visoka"])
-    aktivacije.append(np.fmin(p16, rizik_kritican))
+    # Ispred + jasna → direktna linija vidljivosti, maksimalna brzina
+    p16 = min(u["ispred"], v["jasna"])
+    aktivacije.append(np.fmin(p16, brzina_fokusirana))
+
+    # Ispred + pucanj → neposredna pretnja direktno ispred
+    p17 = min(u["ispred"], z["pucanj"])
+    aktivacije.append(np.fmin(p17, brzina_fokusirana))
+
+    # Visoka detekcija + retka pokrivenost → meta izložena, brzo reaguje
+    p18 = min(d["visoka"], p["retka"])
+    aktivacije.append(np.fmin(p18, brzina_fokusirana))
+
+    # Ispred + visoka detekcija → potvrđena meta ispred, fokusirano napreduje
+    p19 = min(u["ispred"], d["visoka"])
+    aktivacije.append(np.fmin(p19, brzina_fokusirana))
 
     return np.fmax.reduce(aktivacije)
 
 
 # ─────────────────────────────────────────────────────────────────
-# Kontroler 3 — Urgentnost eskalacije
+# Kontroler 3 — Upornost pretrage  (Kratkotrajna / Zadržana / Uporna)
 # ─────────────────────────────────────────────────────────────────
 
-def kontroler_urgentnost(mu: dict) -> np.ndarray:
+def kontroler_upornost(mu: dict) -> np.ndarray:
     v = mu["vizuelna"]
     z = mu["zvuk"]
     p = mu["pokrivenost"]
@@ -247,71 +259,83 @@ def kontroler_urgentnost(mu: dict) -> np.ndarray:
 
     aktivacije = []
 
-    # --- MIRNA ---
-    # Tišina + nejasna → nema uzbuđenja
+    # --- KRATKOTRAJNA (brzo odustaje) ---
+    # Tišina + nejasna → nema signala, nema razloga da ostane
     p01 = min(z["tisina"], v["nejasna"])
-    aktivacije.append(np.fmin(p01, hitnost_mirna))
+    aktivacije.append(np.fmin(p01, upor_kratkotrajna))
 
-    # Niska detekcija + gusta pokrivenost → daleko i skriven
+    # Niska detekcija + gusta pokrivenost → ne može da pronađe, odustaje
     p02 = min(d["niska"], p["gusta"])
-    aktivacije.append(np.fmin(p02, hitnost_mirna))
+    aktivacije.append(np.fmin(p02, upor_kratkotrajna))
 
-    # Iza leđa + tišina → potpuno mirno
+    # Iza leđa + tišina → signal iza + tiho = lažni alarm
     p03 = min(u["iza"], z["tisina"])
-    aktivacije.append(np.fmin(p03, hitnost_mirna))
+    aktivacije.append(np.fmin(p03, upor_kratkotrajna))
 
-    # Iza leđa + niska detekcija → nema potrebe za eskalacijom
+    # Iza leđa + niska detekcija → slab signal iza, ne vredi pratiti
     p04 = min(u["iza"], d["niska"])
-    aktivacije.append(np.fmin(p04, hitnost_mirna))
+    aktivacije.append(np.fmin(p04, upor_kratkotrajna))
 
-    # --- UMERENA ---
-    # Šum + srednja detekcija → prati situaciju
-    p05 = min(z["sum"], d["srednja"])
-    aktivacije.append(np.fmin(p05, hitnost_umerena))
+    # Nejasna + niska detekcija → premalo informacija za dalju pretragu
+    p05 = min(v["nejasna"], d["niska"])
+    aktivacije.append(np.fmin(p05, upor_kratkotrajna))
 
-    # Delimična + šum → nešto se pomera
-    p06 = min(v["delimicna"], z["sum"])
-    aktivacije.append(np.fmin(p06, hitnost_umerena))
+    # --- ZADRŽANA (kruži, verifikuje) ---
+    # Šum + srednja detekcija → ima nešto, ali nije potvrđeno — ostaje da provjeri
+    p06 = min(z["sum"], d["srednja"])
+    aktivacije.append(np.fmin(p06, upor_zadrzana))
 
-    # Visoka detekcija + srednja pokrivenost → blizu ali delimično skriven
-    p07 = min(d["visoka"], p["srednja"])
-    aktivacije.append(np.fmin(p07, hitnost_umerena))
+    # Delimična + šum → nešto se pomera, kruži oko zone
+    p07 = min(v["delimicna"], z["sum"])
+    aktivacije.append(np.fmin(p07, upor_zadrzana))
 
-    # Delimična + srednja detekcija → prati razvoj
+    # Delimična + srednja detekcija → delimično otkrivena meta, nastavlja pretragu
     p08 = min(v["delimicna"], d["srednja"])
-    aktivacije.append(np.fmin(p08, hitnost_umerena))
+    aktivacije.append(np.fmin(p08, upor_zadrzana))
 
-    # Sa boka + šum → čuje se sa strane
+    # Sa boka + šum → signal sa strane, kruži da potvrdi
     p09 = min(u["bok"], z["sum"])
-    aktivacije.append(np.fmin(p09, hitnost_umerena))
+    aktivacije.append(np.fmin(p09, upor_zadrzana))
 
-    # Sa boka + srednja detekcija + delimična → umerena pretnja sa strane
-    p10 = min(u["bok"], d["srednja"], v["delimicna"])
-    aktivacije.append(np.fmin(p10, hitnost_umerena))
+    # Sa boka + delimična + srednja detekcija → delimično otkriveno sa strane
+    p10 = min(u["bok"], v["delimicna"], d["srednja"])
+    aktivacije.append(np.fmin(p10, upor_zadrzana))
 
-    # --- KRITIČNA ---
-    # Pucanj → odmah eskalacija
-    p11 = z["pucanj"]
-    aktivacije.append(np.fmin(p11, hitnost_kriticna))
+    # Visoka detekcija + srednja pokrivenost → blizu ali zaklonjeno, traga dalje
+    p11 = min(d["visoka"], p["srednja"])
+    aktivacije.append(np.fmin(p11, upor_zadrzana))
 
-    # Jasna + visoka detekcija → direktan kontakt
-    p12 = min(v["jasna"], d["visoka"])
-    aktivacije.append(np.fmin(p12, hitnost_kriticna))
+    # Iza leđa + šum → čuje iza, okreće se i verifikuje
+    p12 = min(u["iza"], z["sum"])
+    aktivacije.append(np.fmin(p12, upor_zadrzana))
 
-    # Jasna + pucanj + retka pokrivenost → trojna potvrda
-    p13 = min(v["jasna"], z["pucanj"], p["retka"])
-    aktivacije.append(np.fmin(p13, hitnost_kriticna))
+    # --- UPORNA (ne odustaje dok ne potvrdi) ---
+    # Pucanj → odmah uporna potraga, ne napušta zonu
+    p13 = z["pucanj"]
+    aktivacije.append(np.fmin(p13, upor_uporna))
 
-    # Pucanj + visoka detekcija → potvrđena pretnja sa zvukom
-    p14 = min(z["pucanj"], d["visoka"])
-    aktivacije.append(np.fmin(p14, hitnost_kriticna))
+    # Jasna + visoka detekcija → potvrđena meta, traga dok ne označi
+    p14 = min(v["jasna"], d["visoka"])
+    aktivacije.append(np.fmin(p14, upor_uporna))
 
-    # Ispred + jasna + pucanj → maksimalna hitnost
-    p15 = min(u["ispred"], v["jasna"], z["pucanj"])
-    aktivacije.append(np.fmin(p15, hitnost_kriticna))
+    # Jasna + pucanj → vizuelno + zvučno potvrđeno, maximalna upornost
+    p15 = min(v["jasna"], z["pucanj"])
+    aktivacije.append(np.fmin(p15, upor_uporna))
 
-    # Ispred + visoka detekcija + retka pokrivenost → potpuno izložen ispred
-    p16 = min(u["ispred"], d["visoka"], p["retka"])
-    aktivacije.append(np.fmin(p16, hitnost_kriticna))
+    # Pucanj + visoka detekcija → dvostruka potvrda, ne napušta zonu
+    p16 = min(z["pucanj"], d["visoka"])
+    aktivacije.append(np.fmin(p16, upor_uporna))
+
+    # Ispred + jasna + visoka detekcija → direktan kontakt, uporno prati
+    p17 = min(u["ispred"], v["jasna"], d["visoka"])
+    aktivacije.append(np.fmin(p17, upor_uporna))
+
+    # Ispred + pucanj → pucanj direktno ispred, ne povlači se
+    p18 = min(u["ispred"], z["pucanj"])
+    aktivacije.append(np.fmin(p18, upor_uporna))
+
+    # Jasna + retka pokrivenost + visoka detekcija → meta bez zaklona, sigurno otkrivena
+    p19 = min(v["jasna"], p["retka"], d["visoka"])
+    aktivacije.append(np.fmin(p19, upor_uporna))
 
     return np.fmax.reduce(aktivacije)
