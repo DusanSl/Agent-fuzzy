@@ -22,9 +22,11 @@ TRAJANJE_POTVRDJENO = 60 * FPS
 TRAJANJE_WARNING    = 30 * FPS
 DELAY_POTVRDJENO    = int(3.5 * FPS)
 
-# Brzina Snitcha — fuzzy izlaz [0, 1] mapira se na ovaj opseg
-BRZINA_MIN = 1.5
-BRZINA_MAX = 6.0
+# Brzina Snitcha po stanjima — fuzzy izlaz [0,1] skalira unutar opsega
+# MIRNO:      1.5 – 2.0  (patrolna)
+# UPOZORENJE: 1.8 – 2.2  (oprezna)
+# POTVRĐENO:  2.2 – 2.6  (fokusirana)
+BRZINA_POCETNA = 1.5
 
 RUTA_PATROLE = [
     (200, 200),
@@ -64,7 +66,7 @@ class Igrica:
         self.snitch            = Snitch(ime="Snitch-01")
         self.snitch_pos        = list(RUTA_PATROLE[0])
         self.snitch_ugao       = 0.0
-        self.snitch_brzina     = BRZINA_MIN   # startuje na min, fuzzy preuzima odmah
+        self.snitch_brzina     = BRZINA_POCETNA
         self.cilj_patrole      = 1
         self.stanje            = StanjeSnitcha.MIRNO
 
@@ -86,9 +88,20 @@ class Igrica:
     # Fuzzy brzina → stvarna brzina
     # ─────────────────────────────────────────
     def azuriraj_brzinu(self):
-        """Mapira fuzzy izlaz brzine [0, 1] na piksel/frame opseg."""
-        fuzzy_b = self.snitch.brzina  # crisp vrednost iz FIS-a
-        self.snitch_brzina = BRZINA_MIN + fuzzy_b * (BRZINA_MAX - BRZINA_MIN)
+        """
+        Fuzzy brzina [0, 1] utiče na kretanje u sva tri stanja,
+        ali sa različitim opsezima — stanja se ne preklapaju.
+          MIRNO:       1.5 – 2.0  (patrolna, spora)
+          UPOZORENJE:  1.8 – 2.2  (oprezna, malo brža)
+          POTVRĐENO:   2.2 – 2.6  (fokusirana, najbrža)
+        """
+        b = self.snitch.brzina  # crisp vrednost iz FIS-a [0, 1]
+        if self.stanje == StanjeSnitcha.POTVRĐENO:
+            self.snitch_brzina = 2.2 + b * 0.4
+        elif self.stanje == StanjeSnitcha.UPOZORENJE:
+            self.snitch_brzina = 1.8 + b * 0.4
+        else:
+            self.snitch_brzina = 1.5 + b * 0.5
 
     # ─────────────────────────────────────────
     # Geometrija
@@ -141,14 +154,14 @@ class Igrica:
             if d < br + 30:
                 zbun_faktor = max(zbun_faktor, 1.0 - (d / (br + 30)))
 
-        dist_faktor    = min(1.0, dist / 600)
+        dist_faktor     = min(1.0, dist / 600)
         kretanje_faktor = 0.2 if self.igrac_krece else 0.0
-        pokrivenost    = min(1.0, dist_faktor * 0.4 + zbun_faktor * 0.6 - kretanje_faktor)
-        pokrivenost    = max(0.0, pokrivenost)
+        pokrivenost     = min(1.0, dist_faktor * 0.4 + zbun_faktor * 0.6 - kretanje_faktor)
+        pokrivenost     = max(0.0, pokrivenost)
 
         # Zvuk
         if self.igrac_krece:
-            zvuk_koraka = ZVUK_KORAKA_BASE * (1.0 - min(1.0, dist / 600))
+            zvuk_koraka   = ZVUK_KORAKA_BASE * (1.0 - min(1.0, dist / 600))
             self.zvuk_val = max(self.zvuk_val, zvuk_koraka)
         self.zvuk_val = max(0.0, self.zvuk_val - 0.008)
 
@@ -182,11 +195,11 @@ class Igrica:
 
         # POTVRĐENO
         if u_konusu and not iza_zbuna:
-            self.stanje = StanjeSnitcha.POTVRĐENO
+            self.stanje            = StanjeSnitcha.POTVRĐENO
             self.potvrdjeno_tajmer = TRAJANJE_POTVRDJENO
-            self.warning_centar = None
-            self.warning_tajmer = 0
-            self.vidi_tajmer = 0
+            self.warning_centar    = None
+            self.warning_tajmer    = 0
+            self.vidi_tajmer       = 0
 
         # UPOZORENJE
         elif novo_stanje == StanjeSnitcha.UPOZORENJE or (u_konusu and iza_zbuna):
@@ -198,8 +211,8 @@ class Igrica:
                     self.warning_tajmer = TRAJANJE_WARNING
 
                 if self.warning_centar is None:
-                    self.aktivacioni_zvuk      = zvuk
-                    self.aktivaciona_vizuelna  = self.snitch.angazovanje
+                    self.aktivacioni_zvuk     = zvuk
+                    self.aktivaciona_vizuelna = self.snitch.angazovanje
                     if zvuk > 0.1:
                         self.warning_centar = tuple(map(int, self.igrac_pos))
                     else:
@@ -229,7 +242,7 @@ class Igrica:
     # Kretanje Snitcha
     # ─────────────────────────────────────────
     def pomeri_snitcha(self):
-        b = self.snitch_brzina   # fuzzy-diktirana brzina, ista za sva tri stanja
+        b = self.snitch_brzina   # fuzzy-diktirana brzina
 
         if self.stanje == StanjeSnitcha.POTVRĐENO:
             dist = self.distanca(self.snitch_pos, self.igrac_pos)
@@ -241,10 +254,8 @@ class Igrica:
             self.snitch_ugao = self.ugao_do(self.snitch_pos, self.igrac_pos)
 
         elif self.stanje == StanjeSnitcha.UPOZORENJE and self.warning_centar:
-            # Brzina kruženja skalira sa fuzzy brzinom
-            ugao_brzina = 0.03 + (b / BRZINA_MAX) * 0.04   # [0.03, 0.07] rad/frame
-            ugao_rad    = math.radians(pygame.time.get_ticks() * math.degrees(ugao_brzina) % 360)
-            cx, cy      = self.warning_centar
+            ugao_rad = math.radians(pygame.time.get_ticks() * 0.05)
+            cx, cy   = self.warning_centar
             self.snitch_pos[0] = cx + math.cos(ugao_rad) * 80
             self.snitch_pos[1] = cy + math.sin(ugao_rad) * 80
             self.snitch_ugao   = math.degrees(ugao_rad) + 90
@@ -297,7 +308,7 @@ class Igrica:
             tasteri = pygame.key.get_pressed()
             self.pomeri_igraca(tasteri)
 
-            # FIS → fuzzy brzina → stvarna brzina → pomeri snitcha
+            # FIS → fuzzy izlazi → ažuriraj stanje → ažuriraj brzinu → pomeri
             ulazi       = self.izracunaj_ulaze()
             novo_stanje = self.snitch.proceni(
                 vizuelna=ulazi["vizuelna"],
@@ -306,8 +317,8 @@ class Igrica:
                 detekcija=ulazi["detekcija"],
                 ugao=ulazi["ugao"],
             )
-            self.azuriraj_brzinu()   # ← fuzzy izlaz → snitch_brzina
             self.azuriraj_stanje(novo_stanje, ulazi["zvuk"])
+            self.azuriraj_brzinu()   # ← posle stanja, čita novo stanje
             self.pomeri_snitcha()
 
             boja_stanja = BOJE_STANJA[self.stanje]
