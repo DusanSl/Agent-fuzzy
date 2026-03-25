@@ -1,0 +1,15 @@
+# ═══════════════════════════════════════════════════════════════
+# FUZZY PROMENLJIVE I LINGVISTIČKE VREDNOSTI
+# ───────────────────────────────────────────────────────────────
+# ULAZI:
+#   vizuelna    : nejasna | delimična | jasna
+#   zvuk        : tišina  | šum       | pucanj
+#   pokrivenost : retka   | srednja   | gusta
+#   detekcija   : niska   | srednja   | visoka
+#   ugao        : ispred  | bok       | iza
+#
+# IZLAZI:
+#   angazovanje : ignorisi  | trazi    | oznaci
+#   brzina      : patrolna  | oprezna  | fokusirana
+#   upornost    : kratkotrajna | zadrzana | uporna
+# ═══════════════════════════════════════════════════════════════
