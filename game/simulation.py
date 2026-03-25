@@ -247,7 +247,8 @@ class Igrica:
 
         # Odbrojavanje — UPOZORENJE
         if self.warning_tajmer > 0 and self.stanje == StanjeSnitcha.UPOZORENJE:
-            self.warning_tajmer -= 1
+            otpadanje = max(0.1, 1.0 - self.snitch.upornost)
+            self.warning_tajmer -= otpadanje
             if self.warning_tajmer == 0:
                 self.warning_centar = None
                 self.stanje = StanjeSnitcha.MIRNO
