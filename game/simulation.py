@@ -2,6 +2,7 @@
 import pygame
 import math
 import sys
+import random
 from agent.snitch import Snitch
 from agent.states import StanjeSnitcha, BOJE_STANJA
 from game.renderer import Renderer
@@ -19,7 +20,8 @@ UGAO_KONUSA   = 90
 DUZINA_KONUSA = 200
 
 TRAJANJE_POTVRDJENO = 60 * FPS
-TRAJANJE_WARNING    = 30 * FPS
+TRAJANJE_WARNING_MIN = 5  * FPS
+TRAJANJE_WARNING_MAX = 35 * FPS
 DELAY_POTVRDJENO    = int(3.5 * FPS)
 
 # Brzina Snitcha po stanjima — fuzzy izlaz [0,1] skalira unutar opsega
@@ -47,7 +49,6 @@ ZBUNJEVI = [
 ]
 
 ZVUK_KORAKA_BASE = 0.35
-ZVUK_PUCNJA      = 0.95
 
 
 class Igrica:
@@ -102,6 +103,19 @@ class Igrica:
             self.snitch_brzina = 1.8 + b * 0.4
         else:
             self.snitch_brzina = 1.5 + b * 0.5
+
+    # ─────────────────────────────────────────
+    # Fuzzy upornost → trajanje kruženja
+    # ─────────────────────────────────────────
+    def fuzzy_warning_tajmer(self) -> int:
+        """
+        Fuzzy upornost [0, 1] određuje koliko dugo snitch kruži.
+          kratkotrajna (~0.0) → 5s
+          zadrzana     (~0.5) → 20s
+          uporna       (~1.0) → 35s
+        """
+        u = self.snitch.upornost
+        return int(TRAJANJE_WARNING_MIN + u * (TRAJANJE_WARNING_MAX - TRAJANJE_WARNING_MIN))
 
     # ─────────────────────────────────────────
     # Geometrija
@@ -208,7 +222,7 @@ class Igrica:
 
                 if zvuk >= 0.9 and self.warning_centar is not None:
                     self.warning_centar = tuple(map(int, self.igrac_pos))
-                    self.warning_tajmer = TRAJANJE_WARNING
+                    self.warning_tajmer = self.fuzzy_warning_tajmer()
 
                 if self.warning_centar is None:
                     self.aktivacioni_zvuk     = zvuk
@@ -217,7 +231,7 @@ class Igrica:
                         self.warning_centar = tuple(map(int, self.igrac_pos))
                     else:
                         self.warning_centar = tuple(map(int, self.snitch_pos))
-                    self.warning_tajmer = TRAJANJE_WARNING
+                    self.warning_tajmer = self.fuzzy_warning_tajmer()
 
         # MIRNO
         else:
@@ -303,7 +317,7 @@ class Igrica:
                     sys.exit()
                 if dogadjaj.type == pygame.KEYDOWN:
                     if dogadjaj.key == pygame.K_q:
-                        self.zvuk_val = ZVUK_PUCNJA
+                        self.zvuk_val = random.uniform(0.30, 1.0)
 
             tasteri = pygame.key.get_pressed()
             self.pomeri_igraca(tasteri)
