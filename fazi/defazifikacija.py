@@ -21,9 +21,7 @@ def defuzzifikuj_sve(
         "upornost":    defuzzifikuj_centroid(x_upornost, agg_upornost),
     }
 
-# ─────────────────────────────────────────
 # Fuzzy kontroler za stanje
-# ─────────────────────────────────────────
 x_stanje       = np.arange(0, 1.01, 0.01)
 x_angazovanje  = np.arange(0, 1.01, 0.01)
 x_brzina_ulaz  = np.arange(0, 1.01, 0.01)

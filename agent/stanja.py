@@ -9,9 +9,9 @@ class StanjeAgenta(Enum):
 
 
 BOJE_STANJA = {
-    StanjeAgenta.MIRNO:      (50,  205, 50),   # zelena
-    StanjeAgenta.UPOZORENJE: (255, 215, 0),    # žuta
-    StanjeAgenta.POTVRĐENO:  (220, 50,  50),   # crvena
+    StanjeAgenta.MIRNO:      (50,  205, 50),
+    StanjeAgenta.UPOZORENJE: (255, 215, 0),
+    StanjeAgenta.POTVRĐENO:  (220, 50,  50),
 }
 
 
