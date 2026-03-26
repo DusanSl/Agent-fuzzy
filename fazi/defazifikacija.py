@@ -121,7 +121,7 @@ def ispisi_izlaze(izlazi: dict, stanje: str) -> None:
     }
 
     print("\n" + "=" * 48)
-    print("  FuzzySnitch — Crisp izlazi")
+    print("  FaziAgent — Crisp izlazi")
     print("=" * 48)
 
     for kljuc, vrednost in izlazi.items():
@@ -129,5 +129,5 @@ def ispisi_izlaze(izlazi: dict, stanje: str) -> None:
         print(f"  {labele[kljuc]:<14} {vrednost:.3f}  {traka}")
 
     ikona = ikone_stanja.get(stanje, "⚪")
-    print(f"\n  Stanje Snitcha:  {ikona}  {stanje}")
+    print(f"\n  Stanje Agenta:  {ikona}  {stanje}")
     print("=" * 48)
