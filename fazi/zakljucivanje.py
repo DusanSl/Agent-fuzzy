@@ -1,13 +1,13 @@
-# fuzzy/inference.py
+# fazi/zakljucivanje.py
 import numpy as np
 
-from fuzzy.rules import (
+from fazi.pravila import (
     fuzzifikuj,
     kontroler_angazovanje,
     kontroler_brzina,
     kontroler_upornost,
 )
-from fuzzy.defuzz import (
+from fazi.defazifikacija import (
     defuzzifikuj_sve,
     odredi_stanje,
     ispisi_izlaze,
@@ -26,7 +26,7 @@ def pokreni_fis(
     # Korak 1 — Fuzzifikacija
     mu = fuzzifikuj(vizuelna, zvuk, pokrivenost, detekcija, ugao)
 
-    # Korak 2 — 3 Mamdani kontrolera (agregacija pravila)
+    # Korak 2 — Agregacija pravila sa 3 mamdani kontrolerima
     agg_angazovanje = kontroler_angazovanje(mu)
     agg_brzina      = kontroler_brzina(mu)
     agg_upornost    = kontroler_upornost(mu)
