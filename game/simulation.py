@@ -84,6 +84,8 @@ class Igrica:
 
         # Zvuk
         self.zvuk_val          = 0.0
+        self.peak_zvuk         = 0.0   # max zvuk od poslednjeg pucnja
+        self.lure_aktivan      = False   # jak zvuk aktivirao lure mod
 
     # ─────────────────────────────────────────
     # Fuzzy brzina → stvarna brzina
@@ -109,13 +111,18 @@ class Igrica:
     # ─────────────────────────────────────────
     def fuzzy_warning_tajmer(self) -> int:
         """
-        Fuzzy upornost [0, 1] određuje koliko dugo snitch kruži.
-          kratkotrajna (~0.0) → 5s
-          zadrzana     (~0.5) → 20s
-          uporna       (~1.0) → 35s
+        Tajmer kruženja = fuzzy upornost skalirana početnim zvukom.
+        Fuzzy upornost daje bazni faktor, zvuk ga pojačava:
+          zvuk=0.30 → blagi multiplikator (~1.0x)
+          zvuk=0.70 → srednji            (~1.5x)
+          zvuk=0.95 → maksimalni         (~2.0x)
+        Rezultat je clipovan na [MIN, MAX].
         """
-        u = self.snitch.upornost
-        return int(TRAJANJE_WARNING_MIN + u * (TRAJANJE_WARNING_MAX - TRAJANJE_WARNING_MIN))
+        u    = self.snitch.upornost
+        zvuk = getattr(self, "aktivacioni_zvuk", 0.5)
+        zvuk_faktor = 1.0 + zvuk   # [1.0, 2.0]
+        bazni = TRAJANJE_WARNING_MIN + u * (TRAJANJE_WARNING_MAX - TRAJANJE_WARNING_MIN)
+        return int(min(TRAJANJE_WARNING_MAX, bazni * zvuk_faktor))
 
     # ─────────────────────────────────────────
     # Geometrija
@@ -216,22 +223,23 @@ class Igrica:
             self.vidi_tajmer       = 0
 
         # UPOZORENJE
-        elif novo_stanje == StanjeSnitcha.UPOZORENJE or (u_konusu and iza_zbuna):
+        elif novo_stanje == StanjeSnitcha.UPOZORENJE or (u_konusu and iza_zbuna) or zvuk >= 0.70:
             if self.stanje != StanjeSnitcha.POTVRĐENO:
                 self.stanje = StanjeSnitcha.UPOZORENJE
 
-                if zvuk >= 0.9 and self.warning_centar is not None:
-                    self.warning_centar = tuple(map(int, self.igrac_pos))
-                    self.warning_tajmer = self.fuzzy_warning_tajmer()
-
                 if self.warning_centar is None:
+                    # ── Prvi ulaz u UPOZORENJE ──────────────────────────
                     self.aktivacioni_zvuk     = zvuk
                     self.aktivaciona_vizuelna = self.snitch.angazovanje
-                    if zvuk > 0.1:
-                        self.warning_centar = tuple(map(int, self.igrac_pos))
-                    else:
-                        self.warning_centar = tuple(map(int, self.snitch_pos))
+                    self.warning_centar = tuple(map(int, self.igrac_pos if zvuk > 0.1 else self.snitch_pos))
                     self.warning_tajmer = self.fuzzy_warning_tajmer()
+                    self.lure_aktivan   = zvuk >= 0.70
+                elif self.peak_zvuk >= 0.70 and not self.lure_aktivan:
+                    # ── Novi jak zvuk dok već kruži → resetuj sve JEDNOM ─
+                    self.aktivacioni_zvuk = self.peak_zvuk
+                    self.warning_centar   = tuple(map(int, self.igrac_pos))
+                    self.warning_tajmer   = self.fuzzy_warning_tajmer()
+                    self.lure_aktivan     = True
 
         # MIRNO
         else:
@@ -246,11 +254,20 @@ class Igrica:
                 self.stanje = StanjeSnitcha.MIRNO
 
         # Odbrojavanje — UPOZORENJE
+        # Lure (jak zvuk): opada brzo bez obzira na upornost
+        # Kruženje (slab zvuk): upornost usporava opadanje
         if self.warning_tajmer > 0 and self.stanje == StanjeSnitcha.UPOZORENJE:
-            otpadanje = max(0.1, 1.0 - self.snitch.upornost)
-            self.warning_tajmer -= otpadanje
-            if self.warning_tajmer == 0:
+            # Dok je lure aktivan tajmer teče normalno (1/frame)
+            # Kad kruži — upornost usporava opadanje
+            if self.lure_aktivan:
+                otpadanje = 1.0
+            else:
+                otpadanje = max(0.1, 1.0 - self.snitch.upornost)
+            self.warning_tajmer = int(self.warning_tajmer - otpadanje)
+            if self.warning_tajmer <= 0:
+                self.warning_tajmer = 0
                 self.warning_centar = None
+                self.lure_aktivan   = False
                 self.stanje = StanjeSnitcha.MIRNO
 
     # ─────────────────────────────────────────
@@ -269,11 +286,24 @@ class Igrica:
             self.snitch_ugao = self.ugao_do(self.snitch_pos, self.igrac_pos)
 
         elif self.stanje == StanjeSnitcha.UPOZORENJE and self.warning_centar:
-            ugao_rad = math.radians(pygame.time.get_ticks() * 0.05)
-            cx, cy   = self.warning_centar
-            self.snitch_pos[0] = cx + math.cos(ugao_rad) * 80
-            self.snitch_pos[1] = cy + math.sin(ugao_rad) * 80
-            self.snitch_ugao   = math.degrees(ugao_rad) + 90
+            dist_do_centra = self.distanca(self.snitch_pos, self.warning_centar)
+            if self.lure_aktivan and dist_do_centra > 15:
+                # Lure mod — ide direktno prema izvoru zvuka
+                dx = (self.warning_centar[0] - self.snitch_pos[0]) / dist_do_centra
+                dy = (self.warning_centar[1] - self.snitch_pos[1]) / dist_do_centra
+                self.snitch_pos[0] += dx * b
+                self.snitch_pos[1] += dy * b
+                self.snitch_ugao = self.ugao_do(self.snitch_pos, self.warning_centar)
+            else:
+                # Stigao do cilja ili slab zvuk → kruži oko zone
+                if self.lure_aktivan and dist_do_centra <= 15:
+                    self.lure_aktivan = False   # stigao, prelazi na kruženje
+                    self.peak_zvuk    = 0.0
+                ugao_rad = math.radians(pygame.time.get_ticks() * 0.05)
+                cx, cy   = self.warning_centar
+                self.snitch_pos[0] = cx + math.cos(ugao_rad) * 80
+                self.snitch_pos[1] = cy + math.sin(ugao_rad) * 80
+                self.snitch_ugao   = math.degrees(ugao_rad) + 90
 
         else:
             cilj = RUTA_PATROLE[self.cilj_patrole]
@@ -318,7 +348,8 @@ class Igrica:
                     sys.exit()
                 if dogadjaj.type == pygame.KEYDOWN:
                     if dogadjaj.key == pygame.K_q:
-                        self.zvuk_val = random.uniform(0.30, 1.0)
+                        self.zvuk_val = random.uniform(0.70, 1.0)
+                        self.peak_zvuk = self.zvuk_val
 
             tasteri = pygame.key.get_pressed()
             self.pomeri_igraca(tasteri)
