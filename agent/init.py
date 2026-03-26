@@ -1,3 +1,3 @@
 # agent/__init__.py
-from .snitch import Snitch
-from .states import StanjeSnitcha, BOJE_STANJA
+from .nadzornik import Agent
+from .stanja import StanjeAgenta, BOJE_STANJA

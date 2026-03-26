@@ -1,11 +1,11 @@
-# game/simulation.py
+# igra/simulacija.py
 import pygame
 import math
 import sys
 import random
-from agent.snitch import Snitch
-from agent.states import StanjeSnitcha, BOJE_STANJA
-from game.renderer import Renderer
+from agent.nadzornik import Agent
+from agent.stanja import StanjeAgenta, BOJE_STANJA
+from igra.prikaz import Renderer
 
 # ─────────────────────────────────────────
 # Konstante
@@ -24,7 +24,7 @@ TRAJANJE_WARNING_MIN = 5  * FPS
 TRAJANJE_WARNING_MAX = 35 * FPS
 DELAY_POTVRDJENO    = int(3.5 * FPS)
 
-# Brzina Snitcha po stanjima — fuzzy izlaz [0,1] skalira unutar opsega
+# Brzina Snitcha po stanjima — fazi izlaz [0,1] skalira unutar opsega
 # MIRNO:      1.5 – 2.0  (patrolna)
 # UPOZORENJE: 1.8 – 2.2  (oprezna)
 # POTVRĐENO:  2.2 – 2.6  (fokusirana)
@@ -64,12 +64,12 @@ class Igrica:
         self.renderer = Renderer(self.ekran, self.font_m, self.font_v, SIRINA, VISINA)
 
         # Agent
-        self.snitch            = Snitch(ime="Snitch-01")
+        self.snitch            = Agent(ime="Snitch-01")
         self.snitch_pos        = list(RUTA_PATROLE[0])
         self.snitch_ugao       = 0.0
         self.snitch_brzina     = BRZINA_POCETNA
         self.cilj_patrole      = 1
-        self.stanje            = StanjeSnitcha.MIRNO
+        self.stanje            = StanjeAgenta.MIRNO
 
         # Tajmeri
         self.potvrdjeno_tajmer = 0
@@ -99,9 +99,9 @@ class Igrica:
           POTVRĐENO:   2.2 – 2.6  (fokusirana, najbrža)
         """
         b = self.snitch.brzina  # crisp vrednost iz FIS-a [0, 1]
-        if self.stanje == StanjeSnitcha.POTVRĐENO:
+        if self.stanje == StanjeAgenta.POTVRĐENO:
             self.snitch_brzina = 2.2 + b * 0.4
-        elif self.stanje == StanjeSnitcha.UPOZORENJE:
+        elif self.stanje == StanjeAgenta.UPOZORENJE:
             self.snitch_brzina = 1.8 + b * 0.4
         else:
             self.snitch_brzina = 1.5 + b * 0.5
@@ -111,7 +111,7 @@ class Igrica:
     # ─────────────────────────────────────────
     def fuzzy_warning_tajmer(self) -> int:
         """
-        Tajmer kruženja = fuzzy upornost skalirana početnim zvukom.
+        Tajmer kruženja = fazi upornost skalirana početnim zvukom.
         Fuzzy upornost daje bazni faktor, zvuk ga pojačava:
           zvuk=0.30 → blagi multiplikator (~1.0x)
           zvuk=0.70 → srednji            (~1.5x)
@@ -200,7 +200,7 @@ class Igrica:
     # ─────────────────────────────────────────
     # Logika stanja
     # ─────────────────────────────────────────
-    def azuriraj_stanje(self, novo_stanje: StanjeSnitcha, zvuk: float):
+    def azuriraj_stanje(self, novo_stanje: StanjeAgenta, zvuk: float):
         u_konusu  = self.u_konusu()
         iza_zbuna = self.iza_zbuna()
 
@@ -209,23 +209,23 @@ class Igrica:
         elif u_konusu and iza_zbuna:
             self.vidi_tajmer = max(0, self.vidi_tajmer - 1)
         else:
-            if self.stanje == StanjeSnitcha.UPOZORENJE:
+            if self.stanje == StanjeAgenta.UPOZORENJE:
                 self.vidi_tajmer = max(0, self.vidi_tajmer - 1)
             else:
                 self.vidi_tajmer = max(0, self.vidi_tajmer - 3)
 
         # POTVRĐENO
         if u_konusu and not iza_zbuna:
-            self.stanje            = StanjeSnitcha.POTVRĐENO
+            self.stanje            = StanjeAgenta.POTVRĐENO
             self.potvrdjeno_tajmer = TRAJANJE_POTVRDJENO
             self.warning_centar    = None
             self.warning_tajmer    = 0
             self.vidi_tajmer       = 0
 
         # UPOZORENJE
-        elif novo_stanje == StanjeSnitcha.UPOZORENJE or (u_konusu and iza_zbuna) or zvuk >= 0.70:
-            if self.stanje != StanjeSnitcha.POTVRĐENO:
-                self.stanje = StanjeSnitcha.UPOZORENJE
+        elif novo_stanje == StanjeAgenta.UPOZORENJE or (u_konusu and iza_zbuna) or zvuk >= 0.70:
+            if self.stanje != StanjeAgenta.POTVRĐENO:
+                self.stanje = StanjeAgenta.UPOZORENJE
 
                 if self.warning_centar is None:
                     # ── Prvi ulaz u UPOZORENJE ──────────────────────────
@@ -243,20 +243,20 @@ class Igrica:
 
         # MIRNO
         else:
-            if self.stanje not in (StanjeSnitcha.POTVRĐENO, StanjeSnitcha.UPOZORENJE):
-                self.stanje = StanjeSnitcha.MIRNO
+            if self.stanje not in (StanjeAgenta.POTVRĐENO, StanjeAgenta.UPOZORENJE):
+                self.stanje = StanjeAgenta.MIRNO
 
         # Odbrojavanje — POTVRĐENO
         if self.potvrdjeno_tajmer > 0:
             self.potvrdjeno_tajmer -= 1
             if self.potvrdjeno_tajmer == 0:
                 self.vidi_tajmer = 0
-                self.stanje = StanjeSnitcha.MIRNO
+                self.stanje = StanjeAgenta.MIRNO
 
         # Odbrojavanje — UPOZORENJE
         # Lure (jak zvuk): opada brzo bez obzira na upornost
         # Kruženje (slab zvuk): upornost usporava opadanje
-        if self.warning_tajmer > 0 and self.stanje == StanjeSnitcha.UPOZORENJE:
+        if self.warning_tajmer > 0 and self.stanje == StanjeAgenta.UPOZORENJE:
             # Dok je lure aktivan tajmer teče normalno (1/frame)
             # Kad kruži — upornost usporava opadanje
             if self.lure_aktivan:
@@ -268,15 +268,15 @@ class Igrica:
                 self.warning_tajmer = 0
                 self.warning_centar = None
                 self.lure_aktivan   = False
-                self.stanje = StanjeSnitcha.MIRNO
+                self.stanje = StanjeAgenta.MIRNO
 
     # ─────────────────────────────────────────
     # Kretanje Snitcha
     # ─────────────────────────────────────────
     def pomeri_snitcha(self):
-        b = self.snitch_brzina   # fuzzy-diktirana brzina
+        b = self.snitch_brzina   # fazi-diktirana brzina
 
-        if self.stanje == StanjeSnitcha.POTVRĐENO:
+        if self.stanje == StanjeAgenta.POTVRĐENO:
             dist = self.distanca(self.snitch_pos, self.igrac_pos)
             if dist > 20:
                 dx = (self.igrac_pos[0] - self.snitch_pos[0]) / dist
@@ -285,7 +285,7 @@ class Igrica:
                 self.snitch_pos[1] += dy * b
             self.snitch_ugao = self.ugao_do(self.snitch_pos, self.igrac_pos)
 
-        elif self.stanje == StanjeSnitcha.UPOZORENJE and self.warning_centar:
+        elif self.stanje == StanjeAgenta.UPOZORENJE and self.warning_centar:
             dist_do_centra = self.distanca(self.snitch_pos, self.warning_centar)
             if self.lure_aktivan and dist_do_centra > 15:
                 # Lure mod — ide direktno prema izvoru zvuka
@@ -354,7 +354,7 @@ class Igrica:
             tasteri = pygame.key.get_pressed()
             self.pomeri_igraca(tasteri)
 
-            # FIS → fuzzy izlazi → ažuriraj stanje → ažuriraj brzinu → pomeri
+            # FIS → fazi izlazi → ažuriraj stanje → ažuriraj brzinu → pomeri
             ulazi       = self.izracunaj_ulaze()
             novo_stanje = self.snitch.proceni(
                 vizuelna=ulazi["vizuelna"],

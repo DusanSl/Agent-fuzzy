@@ -1,7 +1,7 @@
-# game/renderer.py
+# igra/prikaz.py
 import pygame
 import math
-from agent.states import StanjeSnitcha, BOJE_STANJA
+from agent.stanja import StanjeSnitcha, BOJE_STANJA
 
 
 class Renderer:

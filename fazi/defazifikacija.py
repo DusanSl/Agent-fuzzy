@@ -1,16 +1,14 @@
-# fuzzy/defuzz.py
+# fazi/defazifikacija.py
 import numpy as np
 import skfuzzy as fuzz
-from fuzzy.membership import (
+from fazi.skupovi import (
     x_ang, x_brzina, x_upornost,
 )
-
 
 def defuzzifikuj_centroid(x_universe: np.ndarray, agg_mf: np.ndarray) -> float:
     if agg_mf.max() == 0:
         return 0.0
     return float(fuzz.defuzz(x_universe, agg_mf, "centroid"))
-
 
 def defuzzifikuj_sve(
     agg_angazovanje: np.ndarray,
@@ -22,7 +20,6 @@ def defuzzifikuj_sve(
         "brzina":      defuzzifikuj_centroid(x_brzina,   agg_brzina),
         "upornost":    defuzzifikuj_centroid(x_upornost, agg_upornost),
     }
-
 
 # ─────────────────────────────────────────
 # Fuzzy kontroler za stanje

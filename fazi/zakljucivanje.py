@@ -1,13 +1,13 @@
-# fuzzy/inference.py
+# fazi/zakljucivanje.py
 import numpy as np
 
-from fuzzy.rules import (
+from fazi.pravila import (
     fuzzifikuj,
     kontroler_angazovanje,
     kontroler_brzina,
     kontroler_upornost,
 )
-from fuzzy.defuzz import (
+from fazi.defazifikacija import (
     defuzzifikuj_sve,
     odredi_stanje,
     ispisi_izlaze,

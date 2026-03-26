@@ -1,13 +1,13 @@
-# agent/snitch.py
-from fuzzy.inference import pokreni_fis
-from agent.states import StanjeSnitcha, string_u_stanje
+# agent/nadzornik.py
+from fazi.zakljucivanje import pokreni_fis
+from agent.stanja import StanjeAgenta, string_u_stanje
 
 
-class Snitch:
+class Agent:
 
     def __init__(self, ime: str = "Snitch-01"):
         self.ime         = ime
-        self.stanje      = StanjeSnitcha.MIRNO
+        self.stanje      = StanjeAgenta.MIRNO
         self.angazovanje = 0.0
         self.brzina      = 0.0
         self.upornost    = 0.0

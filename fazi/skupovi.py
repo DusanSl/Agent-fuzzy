@@ -1,4 +1,4 @@
-# fuzzy/membership.py
+# fazi/skupovi.py
 import numpy as np
 import skfuzzy as fuzz
 import matplotlib.pyplot as plt

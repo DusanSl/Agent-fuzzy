@@ -1,14 +1,14 @@
 # main.py
-from agent.snitch import Snitch
-from fuzzy.defuzz import ispisi_izlaze
+from agent.nadzornik import Agent
+from fazi.defazifikacija import ispisi_izlaze
 
 
 def main():
     print("=" * 48)
-    print("  FuzzySnitch — Pokretanje sistema")
+    print("  FaziAgent — Pokretanje sistema")
     print("=" * 48)
 
-    snitch = Snitch(ime="Snitch-01")
+    snitch = Agent(ime="Agent-01")
 
     # Test scenariji
     scenariji = [
@@ -63,6 +63,6 @@ def main():
 
 
 if __name__ == "__main__":
-    from game.simulation import Igrica
+    from igra.simulacija import Igrica
     igrica = Igrica()
     igrica.pokreni()

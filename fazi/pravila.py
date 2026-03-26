@@ -1,7 +1,7 @@
-# fuzzy/rules.py
+# fazi/pravila.py
 import numpy as np
 import skfuzzy as fuzz
-from fuzzy.membership import (
+from fazi.skupovi import (
     x_vizuelna, x_zvuk, x_pokrivenost, x_detekcija, x_ugao,
     x_ang, x_brzina, x_upornost,
     # Ulazne MF
