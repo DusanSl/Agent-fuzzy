@@ -62,17 +62,15 @@ class Prikaz:
                   potvrdjeno_tajmer: int, warning_tajmer: int, fps: int):
 
         ikone = {
-            StanjeAgenta.MIRNO:      ">> MIRNO",
-            StanjeAgenta.UPOZORENJE: "!! UPOZORENJE",
-            StanjeAgenta.POTVRĐENO:  "## POTVRDJENO",
+            StanjeAgenta.MIRNO:      "MIRNO",
+            StanjeAgenta.UPOZORENJE: "UPOZORENJE",
+            StanjeAgenta.POTVRĐENO:  "POTVRDJENO",
         }
 
-        # HUD pozadina
         povrsina = pygame.Surface((310, 320), pygame.SRCALPHA)
         povrsina.fill((0, 0, 0, 160))
         self.ekran.blit(povrsina, (10, 10))
 
-        # Stanje
         naziv = ikone.get(stanje, "MIRNO")
         tekst = self.font_v.render(naziv, True, BOJE_STANJA[stanje])
         self.ekran.blit(tekst, (20, 18))
@@ -80,7 +78,7 @@ class Prikaz:
         # Ulazi
         y = 55
         self.ekran.blit(self.font_m.render(
-            "── ULAZI ───────────────────", True, (150, 150, 150)), (20, y)); y += 22
+            "ULAZI", True, (150, 150, 150)), (20, y)); y += 22
         for naziv_u, val in ulazi.items():
             if naziv_u == "ugao":
                 traka_val = val / 180.0
@@ -97,7 +95,7 @@ class Prikaz:
         # Izlazi
         y += 6
         self.ekran.blit(self.font_m.render(
-            "── IZLAZI ──────────────────", True, (150, 150, 150)), (20, y)); y += 22
+            "IZLAZI", True, (150, 150, 150)), (20, y)); y += 22
         for naziv_i, val in {
             "angazovanje": status["angazovanje"],
             "brzina":      status["brzina"],
@@ -108,27 +106,12 @@ class Prikaz:
             self.ekran.blit(self.font_m.render(linija, True, (200, 220, 255)), (20, y))
             y += 20
 
-        # Detekcija progress bar
-        y += 8
-        progres = min(vidi_tajmer / delay_potvrdjeno, 1.0)
-        bar_sir = int(progres * 200)
-        self.ekran.blit(
-            self.font_m.render("Detekcija:", True, (150, 150, 150)), (20, y)); y += 18
-        pygame.draw.rect(self.ekran, (60, 60, 60),  (20, y, 200, 10))
-        pygame.draw.rect(self.ekran, (220, 50, 50), (20, y, bar_sir, 10))
-
-        # Tajmeri
         y += 18
-        if stanje == StanjeAgenta.POTVRĐENO and potvrdjeno_tajmer > 0:
-            sek = potvrdjeno_tajmer // fps
-            self.ekran.blit(
-                self.font_m.render(f"Alarm aktivan: {sek}s", True, (220, 50, 50)), (20, y))
-        elif stanje == StanjeAgenta.UPOZORENJE and warning_tajmer > 0:
+        if stanje == StanjeAgenta.UPOZORENJE and warning_tajmer > 0:
             sek = warning_tajmer // fps
             self.ekran.blit(
                 self.font_m.render(f"Verifikacija: {sek}s", True, (255, 215, 0)), (20, y))
 
-        # Kontrole
         self.ekran.blit(
             self.font_m.render("WASD — kretanje   Q — pucanj", True, (120, 120, 120)),
             (20, self.VISINA - 30))
