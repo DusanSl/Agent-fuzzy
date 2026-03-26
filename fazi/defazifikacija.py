@@ -31,12 +31,10 @@ stanje_mirno      = fuzz.trapmf(x_stanje, [0.0, 0.0, 0.25, 0.45])
 stanje_upozorenje = fuzz.trimf (x_stanje, [0.35, 0.50, 0.65])
 stanje_potvrdjeno = fuzz.trapmf(x_stanje, [0.55, 0.75, 1.0,  1.0])
 
-# Angažovanje
 angazovanje_nisko   = fuzz.trapmf(x_angazovanje, [0.0, 0.0, 0.2, 0.4])
 angazovanje_srednje = fuzz.trimf (x_angazovanje, [0.3, 0.5, 0.7])
 angazovanje_visoko  = fuzz.trapmf(x_angazovanje, [0.6, 0.8, 1.0, 1.0])
 
-# Brzina
 brzina_spora     = fuzz.trapmf(x_brzina_ulaz, [0.0, 0.0, 0.2, 0.4])
 brzina_srednja   = fuzz.trimf (x_brzina_ulaz, [0.3, 0.5, 0.7])
 brzina_brza      = fuzz.trapmf(x_brzina_ulaz, [0.6, 0.8, 1.0, 1.0])
@@ -56,60 +54,43 @@ def odredi_stanje(izlazi: dict) -> str:
     brz  = izlazi["brzina"]
     upor = izlazi["upornost"]
 
-    # Fuzzifikacija izlaza kao ulaza u state kontroler
-    a_n = _mu(x_angazovanje, angazovanje_nisko,   ang)
-    a_s = _mu(x_angazovanje, angazovanje_srednje, ang)
-    a_v = _mu(x_angazovanje, angazovanje_visoko,  ang)
+    # Fuzzifikacija crisp izlaza kao ulaza u state kontroler
+    angazovanje_mu_nisko   = _mu(x_angazovanje, angazovanje_nisko,   ang)
+    angazovanje_mu_srednje = _mu(x_angazovanje, angazovanje_srednje, ang)
+    angazovanje_mu_visoko  = _mu(x_angazovanje, angazovanje_visoko,  ang)
 
-    b_s = _mu(x_brzina_ulaz, brzina_spora,   brz)
-    b_m = _mu(x_brzina_ulaz, brzina_srednja, brz)
-    b_b = _mu(x_brzina_ulaz, brzina_brza,    brz)
+    brzina_mu_spora    = _mu(x_brzina_ulaz, brzina_spora,   brz)
+    brzina_mu_srednja  = _mu(x_brzina_ulaz, brzina_srednja, brz)
+    brzina_mu_brza     = _mu(x_brzina_ulaz, brzina_brza,    brz)
 
-    u_m = _mu(x_upor_ulaz, upor_mala,    upor)
-    u_s = _mu(x_upor_ulaz, upor_srednja, upor)
-    u_v = _mu(x_upor_ulaz, upor_velika,  upor)
+    upornost_mu_mala    = _mu(x_upor_ulaz, upor_mala,    upor)
+    upornost_mu_srednja = _mu(x_upor_ulaz, upor_srednja, upor)
+    upornost_mu_velika  = _mu(x_upor_ulaz, upor_velika,  upor)
 
     aktivacije = []
 
-    # ── MIRNO ──────────────────────────────────────────────────────
-    # Ignorisi + patrolna + kratkotrajna → potpuno mirno
-    aktivacije.append(np.fmin(min(a_n, b_s, u_m), stanje_mirno))
-    # Ignorisi + patrolna → nema angažovanja, sporo se kreće
-    aktivacije.append(np.fmin(min(a_n, b_s),       stanje_mirno))
-    # Ignorisi + kratkotrajna → brzo odustaje, nema pretnje
-    aktivacije.append(np.fmin(min(a_n, u_m),       stanje_mirno))
-    # Patrolna + kratkotrajna → rutinska patrola
-    aktivacije.append(np.fmin(min(b_s, u_m),       stanje_mirno))
+    # MIRNO
+    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora, upornost_mu_mala), stanje_mirno))
+    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora), stanje_mirno))
+    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, upornost_mu_mala), stanje_mirno))
+    aktivacije.append(np.fmin(min(brzina_mu_spora, upornost_mu_mala), stanje_mirno))
 
-    # ── UPOZORENJE ─────────────────────────────────────────────────
-    # Traži + oprezna → verifikuje signal, kruži oprezno
-    aktivacije.append(np.fmin(min(a_s, b_m),       stanje_upozorenje))
-    # Traži + zadržana → ostaje u zoni pretrage
-    aktivacije.append(np.fmin(min(a_s, u_s),       stanje_upozorenje))
-    # Oprezna + zadržana → tipičan warning obrazac
-    aktivacije.append(np.fmin(min(b_m, u_s),       stanje_upozorenje))
-    # Traži + oprezna + zadržana → sva tri na srednje → čisto upozorenje
-    aktivacije.append(np.fmin(min(a_s, b_m, u_s),  stanje_upozorenje))
-    # Ignorisi + zadržana → još uvek ne reaguje ali ostaje duže
-    aktivacije.append(np.fmin(min(a_n, u_s),       stanje_upozorenje))
-    # Traži + patrolna + zadržana → nešto traži ali ne ubrzava još
-    aktivacije.append(np.fmin(min(a_s, b_s, u_s),  stanje_upozorenje))
+    # UPOZORENJE
+    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_srednja), stanje_upozorenje))
+    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, upornost_mu_srednja), stanje_upozorenje))
+    aktivacije.append(np.fmin(min(brzina_mu_srednja, upornost_mu_srednja), stanje_upozorenje))
+    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_srednja, upornost_mu_srednja), stanje_upozorenje))
+    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, upornost_mu_srednja), stanje_upozorenje))
+    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_spora, upornost_mu_srednja), stanje_upozorenje))
 
-    # ── POTVRĐENO ──────────────────────────────────────────────────
-    # Označi + fokusirana + uporna → sva tri visoka → direktno potvrđeno
-    aktivacije.append(np.fmin(min(a_v, b_b, u_v),  stanje_potvrdjeno))
-    # Označi + fokusirana → visoko angažovanje i brzina
-    aktivacije.append(np.fmin(min(a_v, b_b),        stanje_potvrdjeno))
-    # Označi + uporna → označi i ne odustaje
-    aktivacije.append(np.fmin(min(a_v, u_v),        stanje_potvrdjeno))
-    # Fokusirana + uporna → brzo i uporno → meta potvrđena
-    aktivacije.append(np.fmin(min(b_b, u_v),        stanje_potvrdjeno))
-    # Označi sam → samo visoko angažovanje je dovoljno
-    aktivacije.append(np.fmin(a_v,                  stanje_potvrdjeno))
-    # Traži + fokusirana + uporna → eskalacija iz upozorenja
-    aktivacije.append(np.fmin(min(a_s, b_b, u_v),  stanje_potvrdjeno))
-    # Označi + zadržana + fokusirana → brzo i srednje uporno
-    aktivacije.append(np.fmin(min(a_v, b_b, u_s),  stanje_potvrdjeno))
+    # POTVRĐENO
+    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza, upornost_mu_velika),  stanje_potvrdjeno))
+    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza), stanje_potvrdjeno))
+    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, upornost_mu_velika), stanje_potvrdjeno))
+    aktivacije.append(np.fmin(min(brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno))
+    aktivacije.append(np.fmin(angazovanje_mu_visoko, stanje_potvrdjeno))
+    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno))
+    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza, upornost_mu_srednja), stanje_potvrdjeno))
 
     agg = np.fmax.reduce(aktivacije)
 
