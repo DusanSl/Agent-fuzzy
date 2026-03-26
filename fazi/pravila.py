@@ -57,56 +57,56 @@ def fuzzifikuj(
 # Kontroler 1 — Angažovanje  (Ignorisi / Traži / Označi)
 
 def kontroler_angazovanje(mu: dict) -> np.ndarray:
-    v = mu["vizuelna"]
-    z = mu["zvuk"]
-    p = mu["pokrivenost"]
-    d = mu["detekcija"]
-    u = mu["ugao"]
+    vizuelna    = mu["vizuelna"]
+    zvuk        = mu["zvuk"]
+    pokrivenost = mu["pokrivenost"]
+    detekcija   = mu["detekcija"]
+    ugao        = mu["ugao"]
 
     aktivacije = []
 
-    # --- IGNORIŠI ---
-    p01 = min(v["nejasna"], z["tisina"])
+    # IGNORIŠI
+    p01 = min(vizuelna["nejasna"], zvuk["tisina"])
     aktivacije.append(np.fmin(p01, ang_ignorisi))
-    p02 = min(v["nejasna"], p["gusta"])
+    p02 = min(vizuelna["nejasna"], pokrivenost["gusta"])
     aktivacije.append(np.fmin(p02, ang_ignorisi))
-    p03 = min(d["niska"], z["tisina"])
+    p03 = min(detekcija["niska"], zvuk["tisina"])
     aktivacije.append(np.fmin(p03, ang_ignorisi))
-    p04 = min(u["iza"], v["nejasna"])
+    p04 = min(ugao["iza"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p04, ang_ignorisi))
-    p05 = min(u["iza"], z["tisina"])
+    p05 = min(ugao["iza"], zvuk["tisina"])
     aktivacije.append(np.fmin(p05, ang_ignorisi))
 
-    # --- TRAŽI ---
-    p06 = v["delimicna"]
+    # TRAŽI
+    p06 = vizuelna["delimicna"]
     aktivacije.append(np.fmin(p06, ang_trazi))
-    p07 = min(z["sum"], v["nejasna"])
+    p07 = min(zvuk["sum"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p07, ang_trazi))
-    p08 = min(d["srednja"], p["srednja"])
+    p08 = min(detekcija["srednja"], pokrivenost["srednja"])
     aktivacije.append(np.fmin(p08, ang_trazi))
-    p09 = min(z["sum"], d["srednja"])
+    p09 = min(zvuk["sum"], detekcija["srednja"])
     aktivacije.append(np.fmin(p09, ang_trazi))
-    p10 = min(v["delimicna"], p["retka"])
+    p10 = min(vizuelna["delimicna"], pokrivenost["retka"])
     aktivacije.append(np.fmin(p10, ang_trazi))
-    p11 = min(u["bok"], v["delimicna"])
+    p11 = min(ugao["bok"], vizuelna["delimicna"])
     aktivacije.append(np.fmin(p11, ang_trazi))
-    p12 = min(u["iza"], z["sum"])
+    p12 = min(ugao["iza"], zvuk["sum"])
     aktivacije.append(np.fmin(p12, ang_trazi))
 
-    # --- OZNAČI ---
-    p13 = min(v["jasna"], d["visoka"])
+    # OZNAČI
+    p13 = min(vizuelna["jasna"], detekcija["visoka"])
     aktivacije.append(np.fmin(p13, ang_oznaci))
-    p14 = min(v["jasna"], z["pucanj"])
+    p14 = min(vizuelna["jasna"], zvuk["pucanj"])
     aktivacije.append(np.fmin(p14, ang_oznaci))
-    p15 = min(d["visoka"], p["retka"])
+    p15 = min(detekcija["visoka"], pokrivenost["retka"])
     aktivacije.append(np.fmin(p15, ang_oznaci))
-    p16 = min(v["jasna"], z["sum"], d["visoka"])
+    p16 = min(vizuelna["jasna"], zvuk["sum"], detekcija["visoka"])
     aktivacije.append(np.fmin(p16, ang_oznaci))
-    p17 = z["pucanj"]
+    p17 = zvuk["pucanj"]
     aktivacije.append(np.fmin(p17, ang_oznaci))
-    p18 = min(u["ispred"], v["jasna"], d["visoka"])
+    p18 = min(ugao["ispred"], vizuelna["jasna"], detekcija["visoka"])
     aktivacije.append(np.fmin(p18, ang_oznaci))
-    p19 = min(u["ispred"], z["pucanj"])
+    p19 = min(ugao["ispred"], zvuk["pucanj"])
     aktivacije.append(np.fmin(p19, ang_oznaci))
 
     return np.fmax.reduce(aktivacije)
@@ -114,56 +114,56 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
 # Kontroler 2 — Brzina kretanja  (Patrolna / Oprezna / Fokusirana)
 
 def kontroler_brzina(mu: dict) -> np.ndarray:
-    v = mu["vizuelna"]
-    z = mu["zvuk"]
-    p = mu["pokrivenost"]
-    d = mu["detekcija"]
-    u = mu["ugao"]
+    vizuelna    = mu["vizuelna"]
+    zvuk        = mu["zvuk"]
+    pokrivenost = mu["pokrivenost"]
+    detekcija   = mu["detekcija"]
+    ugao        = mu["ugao"]
 
     aktivacije = []
 
-    # --- PATROLNA (spora, rutinska) ---
-    p01 = min(z["tisina"], v["nejasna"])
+    # PATROLNA
+    p01 = min(zvuk["tisina"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p01, brzina_patrolna))
-    p02 = min(d["niska"], p["gusta"])
+    p02 = min(detekcija["niska"], pokrivenost["gusta"])
     aktivacije.append(np.fmin(p02, brzina_patrolna))
-    p03 = min(u["iza"], z["tisina"])
+    p03 = min(ugao["iza"], zvuk["tisina"])
     aktivacije.append(np.fmin(p03, brzina_patrolna))
-    p04 = min(u["iza"], d["niska"])
+    p04 = min(ugao["iza"], detekcija["niska"])
     aktivacije.append(np.fmin(p04, brzina_patrolna))
-    p05 = min(v["nejasna"], p["gusta"])
+    p05 = min(vizuelna["nejasna"], pokrivenost["gusta"])
     aktivacije.append(np.fmin(p05, brzina_patrolna))
 
-    # --- OPREZNA (srednja, pažljiva) ---
-    p06 = min(z["sum"], v["nejasna"])
+    # OPREZNA
+    p06 = min(zvuk["sum"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p06, brzina_oprezna))
-    p07 = min(v["delimicna"], d["srednja"])
+    p07 = min(vizuelna["delimicna"], detekcija["srednja"])
     aktivacije.append(np.fmin(p07, brzina_oprezna))
-    p08 = min(z["sum"], d["srednja"])
+    p08 = min(zvuk["sum"], detekcija["srednja"])
     aktivacije.append(np.fmin(p08, brzina_oprezna))
-    p09 = min(u["bok"], v["delimicna"])
+    p09 = min(ugao["bok"], vizuelna["delimicna"])
     aktivacije.append(np.fmin(p09, brzina_oprezna))
-    p10 = min(v["delimicna"], p["retka"])
+    p10 = min(vizuelna["delimicna"], pokrivenost["retka"])
     aktivacije.append(np.fmin(p10, brzina_oprezna))
-    p11 = min(u["bok"], z["sum"])
+    p11 = min(ugao["bok"], zvuk["sum"])
     aktivacije.append(np.fmin(p11, brzina_oprezna))
-    p12 = min(d["srednja"], p["srednja"])
+    p12 = min(detekcija["srednja"], pokrivenost["srednja"])
     aktivacije.append(np.fmin(p12, brzina_oprezna))
 
-    # --- FOKUSIRANA (brza, direktna) ---
-    p13 = z["pucanj"]
+    # FOKUSIRANA
+    p13 = zvuk["pucanj"]
     aktivacije.append(np.fmin(p13, brzina_fokusirana))
-    p14 = min(v["jasna"], d["visoka"])
+    p14 = min(vizuelna["jasna"], detekcija["visoka"])
     aktivacije.append(np.fmin(p14, brzina_fokusirana))
-    p15 = min(v["jasna"], p["retka"])
+    p15 = min(vizuelna["jasna"], pokrivenost["retka"])
     aktivacije.append(np.fmin(p15, brzina_fokusirana))
-    p16 = min(u["ispred"], v["jasna"])
+    p16 = min(ugao["ispred"], vizuelna["jasna"])
     aktivacije.append(np.fmin(p16, brzina_fokusirana))
-    p17 = min(u["ispred"], z["pucanj"])
+    p17 = min(ugao["ispred"], zvuk["pucanj"])
     aktivacije.append(np.fmin(p17, brzina_fokusirana))
-    p18 = min(d["visoka"], p["retka"])
+    p18 = min(detekcija["visoka"], pokrivenost["retka"])
     aktivacije.append(np.fmin(p18, brzina_fokusirana))
-    p19 = min(u["ispred"], d["visoka"])
+    p19 = min(ugao["ispred"], detekcija["visoka"])
     aktivacije.append(np.fmin(p19, brzina_fokusirana))
 
     return np.fmax.reduce(aktivacije)
@@ -171,54 +171,56 @@ def kontroler_brzina(mu: dict) -> np.ndarray:
 # Kontroler 3 — Upornost pretrage  (Kratkotrajna / Zadržana / Uporna)
 
 def kontroler_upornost(mu: dict) -> np.ndarray:
-    v = mu["vizuelna"]
-    z = mu["zvuk"]
-    p = mu["pokrivenost"]
-    d = mu["detekcija"]
-    u = mu["ugao"]
+    vizuelna    = mu["vizuelna"]
+    zvuk        = mu["zvuk"]
+    pokrivenost = mu["pokrivenost"]
+    detekcija   = mu["detekcija"]
+    ugao        = mu["ugao"]
 
     aktivacije = []
 
-    # --- KRATKOTRAJNA (brzo odustaje) ---
-    p01 = min(z["tisina"], v["nejasna"])
+    # KRATKOTRAJNA
+    p01 = min(zvuk["tisina"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p01, upor_kratkotrajna))
-    p02 = min(d["niska"], p["gusta"])
+    p02 = min(detekcija["niska"], pokrivenost["gusta"])
     aktivacije.append(np.fmin(p02, upor_kratkotrajna))
-    p03 = min(u["iza"], z["tisina"])
+    p03 = min(ugao["iza"], zvuk["tisina"])
     aktivacije.append(np.fmin(p03, upor_kratkotrajna))
-    p04 = min(u["iza"], d["niska"])
+    p04 = min(ugao["iza"], detekcija["niska"])
     aktivacije.append(np.fmin(p04, upor_kratkotrajna))
-    p05 = min(v["nejasna"], d["niska"])
+    p05 = min(vizuelna["nejasna"], detekcija["niska"])
     aktivacije.append(np.fmin(p05, upor_kratkotrajna))
-    p06 = min(z["sum"], d["srednja"])
+
+    # ZADRŽANA
+    p06 = min(zvuk["sum"], detekcija["srednja"])
     aktivacije.append(np.fmin(p06, upor_zadrzana))
-    p07 = min(v["delimicna"], z["sum"])
+    p07 = min(vizuelna["delimicna"], zvuk["sum"])
     aktivacije.append(np.fmin(p07, upor_zadrzana))
-    p08 = min(v["delimicna"], d["srednja"])
+    p08 = min(vizuelna["delimicna"], detekcija["srednja"])
     aktivacije.append(np.fmin(p08, upor_zadrzana))
-    p09 = min(u["bok"], z["sum"])
+    p09 = min(ugao["bok"], zvuk["sum"])
     aktivacije.append(np.fmin(p09, upor_zadrzana))
-    p10 = min(u["bok"], v["delimicna"], d["srednja"])
+    p10 = min(ugao["bok"], vizuelna["delimicna"], detekcija["srednja"])
     aktivacije.append(np.fmin(p10, upor_zadrzana))
-    p11 = min(d["visoka"], p["srednja"])
+    p11 = min(detekcija["visoka"], pokrivenost["srednja"])
     aktivacije.append(np.fmin(p11, upor_zadrzana))
-    p12 = min(u["iza"], z["sum"])
+    p12 = min(ugao["iza"], zvuk["sum"])
     aktivacije.append(np.fmin(p12, upor_zadrzana))
 
-    # --- UPORNA (ne odustaje dok ne potvrdi) ---
-    p13 = z["pucanj"]
+    # UPORNA
+    p13 = zvuk["pucanj"]
     aktivacije.append(np.fmin(p13, upor_uporna))
-    p14 = min(v["jasna"], d["visoka"])
+    p14 = min(vizuelna["jasna"], detekcija["visoka"])
     aktivacije.append(np.fmin(p14, upor_uporna))
-    p15 = min(v["jasna"], z["pucanj"])
+    p15 = min(vizuelna["jasna"], zvuk["pucanj"])
     aktivacije.append(np.fmin(p15, upor_uporna))
-    p16 = min(z["pucanj"], d["visoka"])
+    p16 = min(zvuk["pucanj"], detekcija["visoka"])
     aktivacije.append(np.fmin(p16, upor_uporna))
-    p17 = min(u["ispred"], v["jasna"], d["visoka"])
+    p17 = min(ugao["ispred"], vizuelna["jasna"], detekcija["visoka"])
     aktivacije.append(np.fmin(p17, upor_uporna))
-    p18 = min(u["ispred"], z["pucanj"])
+    p18 = min(ugao["ispred"], zvuk["pucanj"])
     aktivacije.append(np.fmin(p18, upor_uporna))
-    p19 = min(v["jasna"], p["retka"], d["visoka"])
+    p19 = min(vizuelna["jasna"], pokrivenost["retka"], detekcija["visoka"])
     aktivacije.append(np.fmin(p19, upor_uporna))
 
     return np.fmax.reduce(aktivacije)
