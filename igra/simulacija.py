@@ -5,7 +5,7 @@ import sys
 import random
 from agent.nadzornik import Agent
 from agent.stanja import StanjeAgenta, BOJE_STANJA
-from igra.prikaz import Renderer
+from igra.prikaz import Prikaz
 
 # ─────────────────────────────────────────
 # Konstante
@@ -61,7 +61,7 @@ class Igrica:
         self.font_v = pygame.font.SysFont("consolas", 22, bold=True)
 
         # Renderer
-        self.renderer = Renderer(self.ekran, self.font_m, self.font_v, SIRINA, VISINA)
+        self.renderer = Prikaz(self.ekran, self.font_m, self.font_v, SIRINA, VISINA)
 
         # Agent
         self.snitch            = Agent(ime="Snitch-01")

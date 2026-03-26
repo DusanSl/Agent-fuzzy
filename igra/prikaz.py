@@ -1,10 +1,10 @@
 # igra/prikaz.py
 import pygame
 import math
-from agent.stanja import StanjeSnitcha, BOJE_STANJA
+from agent.stanja import StanjeAgenta, BOJE_STANJA
 
 
-class Renderer:
+class Prikaz:
     def __init__(self, ekran, font_m, font_v, sirina: int, visina: int):
         self.ekran  = ekran
         self.font_m = font_m
@@ -50,21 +50,21 @@ class Renderer:
         pygame.draw.circle(self.ekran, (255, 255, 255), (ix, iy), 12, 2)
 
     def crtaj_warning_zonu(self, warning_centar, stanje):
-        if warning_centar and stanje == StanjeSnitcha.UPOZORENJE:
+        if warning_centar and stanje == StanjeAgenta.UPOZORENJE:
             cx, cy   = int(warning_centar[0]), int(warning_centar[1])
             povrsina = pygame.Surface((self.SIRINA, self.VISINA), pygame.SRCALPHA)
             pygame.draw.circle(povrsina, (255, 215, 0, 30),  (cx, cy), 100)
             pygame.draw.circle(povrsina, (255, 215, 0, 150), (cx, cy), 100, 2)
             self.ekran.blit(povrsina, (0, 0))
 
-    def crtaj_hud(self, ulazi: dict, status: dict, stanje: StanjeSnitcha,
+    def crtaj_hud(self, ulazi: dict, status: dict, stanje: StanjeAgenta,
                   vidi_tajmer: int, delay_potvrdjeno: int,
                   potvrdjeno_tajmer: int, warning_tajmer: int, fps: int):
 
         ikone = {
-            StanjeSnitcha.MIRNO:      ">> MIRNO",
-            StanjeSnitcha.UPOZORENJE: "!! UPOZORENJE",
-            StanjeSnitcha.POTVRĐENO:  "## POTVRDJENO",
+            StanjeAgenta.MIRNO:      ">> MIRNO",
+            StanjeAgenta.UPOZORENJE: "!! UPOZORENJE",
+            StanjeAgenta.POTVRĐENO:  "## POTVRDJENO",
         }
 
         # HUD pozadina
@@ -119,11 +119,11 @@ class Renderer:
 
         # Tajmeri
         y += 18
-        if stanje == StanjeSnitcha.POTVRĐENO and potvrdjeno_tajmer > 0:
+        if stanje == StanjeAgenta.POTVRĐENO and potvrdjeno_tajmer > 0:
             sek = potvrdjeno_tajmer // fps
             self.ekran.blit(
                 self.font_m.render(f"Alarm aktivan: {sek}s", True, (220, 50, 50)), (20, y))
-        elif stanje == StanjeSnitcha.UPOZORENJE and warning_tajmer > 0:
+        elif stanje == StanjeAgenta.UPOZORENJE and warning_tajmer > 0:
             sek = warning_tajmer // fps
             self.ekran.blit(
                 self.font_m.render(f"Verifikacija: {sek}s", True, (255, 215, 0)), (20, y))
