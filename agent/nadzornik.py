@@ -12,7 +12,6 @@ class Agent:
         self.brzina      = 0.0
         self.upornost    = 0.0
 
-        # HUD prikaz
         self.vizuelna    = 0.0
         self.zvuk        = 0.0
         self.pokrivenost = 0.0

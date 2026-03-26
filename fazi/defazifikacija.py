@@ -39,7 +39,6 @@ brzina_spora     = fuzz.trapmf(x_brzina_ulaz, [0.0, 0.0, 0.2, 0.4])
 brzina_srednja   = fuzz.trimf (x_brzina_ulaz, [0.3, 0.5, 0.7])
 brzina_brza      = fuzz.trapmf(x_brzina_ulaz, [0.6, 0.8, 1.0, 1.0])
 
-# Upornost
 upor_mala    = fuzz.trapmf(x_upor_ulaz, [0.0, 0.0, 0.2, 0.4])
 upor_srednja = fuzz.trimf (x_upor_ulaz, [0.3, 0.5, 0.7])
 upor_velika  = fuzz.trapmf(x_upor_ulaz, [0.6, 0.8, 1.0, 1.0])
