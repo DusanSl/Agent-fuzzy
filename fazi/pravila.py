@@ -4,16 +4,19 @@ import skfuzzy as fuzz
 from fazi.skupovi import (
     x_vizuelna, x_zvuk, x_pokrivenost, x_detekcija, x_ugao,
     x_ang, x_brzina, x_upornost,
+
     # Ulazne MF
     vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna,
     zvuk_tisina, zvuk_sum, zvuk_pucanj,
     pokr_retka, pokr_srednja, pokr_gusta,
     det_niska, det_srednja, det_visoka,
     ugao_ispred, ugao_bok, ugao_iza,
+
     # Izlazne MF
     ang_ignorisi, ang_trazi, ang_oznaci,
     brzina_patrolna, brzina_oprezna, brzina_fokusirana,
     upor_kratkotrajna, upor_zadrzana, upor_uporna,
+
     # Helper
     get_membership,
 )

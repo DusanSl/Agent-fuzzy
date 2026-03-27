@@ -17,16 +17,16 @@ class Prikaz:
             pygame.draw.circle(self.ekran, (34, 100, 34), (bx, by), br)
             pygame.draw.circle(self.ekran, (50, 140, 50), (bx, by), br, 2)
 
-    def crtaj_konus(self, snitch_pos, snitch_ugao, boja_stanja,
+    def crtaj_konus(self, agent_pos, agent_ugao, boja_stanja,
                     ugao_konusa: int, duzina_konusa: int):
-        ugao_rad  = math.radians(snitch_ugao)
+        ugao_rad  = math.radians(agent_ugao)
         pola_ugao = math.radians(ugao_konusa / 2)
-        tacke     = [tuple(map(int, snitch_pos))]
+        tacke     = [tuple(map(int, agent_pos))]
 
         for i in range(21):
             a = ugao_rad - pola_ugao + (i / 20) * math.radians(ugao_konusa)
-            x = snitch_pos[0] + math.cos(a) * duzina_konusa
-            y = snitch_pos[1] + math.sin(a) * duzina_konusa
+            x = agent_pos[0] + math.cos(a) * duzina_konusa
+            y = agent_pos[1] + math.sin(a) * duzina_konusa
             tacke.append((int(x), int(y)))
 
         povrsina = pygame.Surface((self.SIRINA, self.VISINA), pygame.SRCALPHA)
@@ -35,14 +35,14 @@ class Prikaz:
         pygame.draw.polygon(povrsina, (r, g, b, 120), tacke, 2)
         self.ekran.blit(povrsina, (0, 0))
 
-    def crtaj_snitcha(self, snitch_pos, snitch_ugao, boja_stanja):
-        sx, sy   = int(snitch_pos[0]), int(snitch_pos[1])
-        pygame.draw.circle(self.ekran, boja_stanja,     (sx, sy), 16)
-        pygame.draw.circle(self.ekran, (255, 255, 255), (sx, sy), 16, 2)
-        ugao_rad = math.radians(snitch_ugao)
-        nx = sx + int(math.cos(ugao_rad) * 22)
-        ny = sy + int(math.sin(ugao_rad) * 22)
-        pygame.draw.line(self.ekran, (255, 255, 255), (sx, sy), (nx, ny), 3)
+    def crtaj_agenta(self, agent_pos, agent_ugao, boja_stanja):
+        ax, ay   = int(agent_pos[0]), int(agent_pos[1])
+        pygame.draw.circle(self.ekran, boja_stanja,     (ax, ay), 16)
+        pygame.draw.circle(self.ekran, (255, 255, 255), (ax, ay), 16, 2)
+        ugao_rad = math.radians(agent_ugao)
+        nx = ax + int(math.cos(ugao_rad) * 22)
+        ny = ay + int(math.sin(ugao_rad) * 22)
+        pygame.draw.line(self.ekran, (255, 255, 255), (ax, ay), (nx, ny), 3)
 
     def crtaj_igraca(self, igrac_pos, boja_igraca):
         ix, iy = int(igrac_pos[0]), int(igrac_pos[1])

@@ -5,14 +5,13 @@ from agent.stanja import StanjeAgenta, string_u_stanje
 
 class Agent:
 
-    def __init__(self, ime: str = "Snitch-01"):
+    def __init__(self, ime: str = "Agent-01"):
         self.ime         = ime
         self.stanje      = StanjeAgenta.MIRNO
         self.angazovanje = 0.0
         self.brzina      = 0.0
         self.upornost    = 0.0
 
-        # HUD prikaz
         self.vizuelna    = 0.0
         self.zvuk        = 0.0
         self.pokrivenost = 0.0

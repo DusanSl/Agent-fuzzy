@@ -48,17 +48,17 @@ class Igrica:
     def __init__(self):
         pygame.init()
         self.ekran  = pygame.display.set_mode((SIRINA, VISINA))
-        pygame.display.set_caption("FuzzySnitch — Nadzorni Agent")
+        pygame.display.set_caption("Nadzorni FuzzyAgent")
         self.sat    = pygame.time.Clock()
         self.font_m = pygame.font.SysFont("consolas", 16)
         self.font_v = pygame.font.SysFont("consolas", 22, bold=True)
 
         self.renderer = Prikaz(self.ekran, self.font_m, self.font_v, SIRINA, VISINA)
 
-        self.snitch            = Agent(ime="Snitch-01")
-        self.snitch_pos        = list(RUTA_PATROLE[0])
-        self.snitch_ugao       = 0.0
-        self.snitch_brzina     = BRZINA_POCETNA
+        self.agent            = Agent(ime="Agent-01")
+        self.agent_pos        = list(RUTA_PATROLE[0])
+        self.agent_ugao       = 0.0
+        self.agent_brzina     = BRZINA_POCETNA
         self.cilj_patrole      = 1
         self.stanje            = StanjeAgenta.MIRNO
 
@@ -77,16 +77,16 @@ class Igrica:
 
     # Fuzzy brzina → stvarna brzina
     def azuriraj_brzinu(self):
-        b = self.snitch.brzina
+        b = self.agent.brzina
         if self.stanje == StanjeAgenta.POTVRĐENO:
-            self.snitch_brzina = 2.2 + b * 0.4
+            self.agent_brzina = 2.2 + b * 0.4
         elif self.stanje == StanjeAgenta.UPOZORENJE:
-            self.snitch_brzina = 1.8 + b * 0.4
+            self.agent_brzina = 1.8 + b * 0.4
         else:
-            self.snitch_brzina = 1.5 + b * 0.5
+            self.agent_brzina = 1.5 + b * 0.5
 
     def fuzzy_warning_tajmer(self) -> int:
-        u = self.snitch.upornost
+        u = self.agent.upornost
         zvuk = getattr(self, "aktivacioni_zvuk", 0.5)
         zvuk_faktor = 1.0 + zvuk
         bazni = TRAJANJE_WARNING_MIN + u * (TRAJANJE_WARNING_MAX - TRAJANJE_WARNING_MIN)
@@ -99,11 +99,11 @@ class Igrica:
         return math.degrees(math.atan2(do[1] - od[1], do[0] - od[0]))
 
     def u_konusu(self) -> bool:
-        dist = self.distanca(self.snitch_pos, self.igrac_pos)
+        dist = self.distanca(self.agent_pos, self.igrac_pos)
         if dist > DUZINA_KONUSA:
             return False
-        ugao_do_igraca = self.ugao_do(self.snitch_pos, self.igrac_pos)
-        razlika = abs((ugao_do_igraca - self.snitch_ugao + 180) % 360 - 180)
+        ugao_do_igraca = self.ugao_do(self.agent_pos, self.igrac_pos)
+        razlika = abs((ugao_do_igraca - self.agent_ugao + 180) % 360 - 180)
         return razlika < UGAO_KONUSA / 2
 
     def iza_zbuna(self) -> bool:
@@ -114,7 +114,7 @@ class Igrica:
 
     # Ulazi
     def izracunaj_ulaze(self) -> dict:
-        dist      = self.distanca(self.snitch_pos, self.igrac_pos)
+        dist      = self.distanca(self.agent_pos, self.igrac_pos)
         u_konusu  = self.u_konusu()
         iza_zbuna = self.iza_zbuna()
 
@@ -145,8 +145,8 @@ class Igrica:
             self.zvuk_val = max(self.zvuk_val, zvuk_koraka)
         self.zvuk_val = max(0.0, self.zvuk_val - 0.008)
 
-        ugao_do_igraca = self.ugao_do(self.snitch_pos, self.igrac_pos)
-        ugaona_razlika = abs((ugao_do_igraca - self.snitch_ugao + 180) % 360 - 180)
+        ugao_do_igraca = self.ugao_do(self.agent_pos, self.igrac_pos)
+        ugaona_razlika = abs((ugao_do_igraca - self.agent_ugao + 180) % 360 - 180)
 
         return {
             "vizuelna":    round(min(vizuelna, 1.0), 3),
@@ -186,8 +186,8 @@ class Igrica:
 
                 if self.warning_centar is None:
                     self.aktivacioni_zvuk     = zvuk
-                    self.aktivaciona_vizuelna = self.snitch.angazovanje
-                    self.warning_centar = tuple(map(int, self.igrac_pos if zvuk > 0.1 else self.snitch_pos))
+                    self.aktivaciona_vizuelna = self.agent.angazovanje
+                    self.warning_centar = tuple(map(int, self.igrac_pos if zvuk > 0.1 else self.agent_pos))
                     self.warning_tajmer = self.fuzzy_warning_tajmer()
                     self.lure_aktivan   = zvuk >= 0.70
                 elif self.peak_zvuk >= 0.70 and not self.lure_aktivan:
@@ -213,7 +213,7 @@ class Igrica:
             if self.lure_aktivan:
                 otpadanje = 1.0
             else:
-                otpadanje = max(0.1, 1.0 - self.snitch.upornost)
+                otpadanje = max(0.1, 1.0 - self.agent.upornost)
             self.warning_tajmer = int(self.warning_tajmer - otpadanje)
             if self.warning_tajmer <= 0:
                 self.warning_tajmer = 0
@@ -221,48 +221,48 @@ class Igrica:
                 self.lure_aktivan   = False
                 self.stanje = StanjeAgenta.MIRNO
 
-    def pomeri_snitcha(self):
-        b = self.snitch_brzina
+    def pomeri_agenta(self):
+        b = self.agent_brzina
 
         if self.stanje == StanjeAgenta.POTVRĐENO:
-            dist = self.distanca(self.snitch_pos, self.igrac_pos)
+            dist = self.distanca(self.agent_pos, self.igrac_pos)
             if dist > 20:
-                dx = (self.igrac_pos[0] - self.snitch_pos[0]) / dist
-                dy = (self.igrac_pos[1] - self.snitch_pos[1]) / dist
-                self.snitch_pos[0] += dx * b
-                self.snitch_pos[1] += dy * b
-            self.snitch_ugao = self.ugao_do(self.snitch_pos, self.igrac_pos)
+                dx = (self.igrac_pos[0] - self.agent_pos[0]) / dist
+                dy = (self.igrac_pos[1] - self.agent_pos[1]) / dist
+                self.agent_pos[0] += dx * b
+                self.agent_pos[1] += dy * b
+            self.agent_ugao = self.ugao_do(self.agent_pos, self.igrac_pos)
 
         elif self.stanje == StanjeAgenta.UPOZORENJE and self.warning_centar:
-            dist_do_centra = self.distanca(self.snitch_pos, self.warning_centar)
+            dist_do_centra = self.distanca(self.agent_pos, self.warning_centar)
             if self.lure_aktivan and dist_do_centra > 15:
                 # Lure mod — ide direktno prema izvoru zvuka
-                dx = (self.warning_centar[0] - self.snitch_pos[0]) / dist_do_centra
-                dy = (self.warning_centar[1] - self.snitch_pos[1]) / dist_do_centra
-                self.snitch_pos[0] += dx * b
-                self.snitch_pos[1] += dy * b
-                self.snitch_ugao = self.ugao_do(self.snitch_pos, self.warning_centar)
+                dx = (self.warning_centar[0] - self.agent_pos[0]) / dist_do_centra
+                dy = (self.warning_centar[1] - self.agent_pos[1]) / dist_do_centra
+                self.agent_pos[0] += dx * b
+                self.agent_pos[1] += dy * b
+                self.agent_ugao = self.ugao_do(self.agent_pos, self.warning_centar)
             else:
                 if self.lure_aktivan and dist_do_centra <= 15:
                     self.lure_aktivan = False
                     self.peak_zvuk    = 0.0
                 ugao_rad = math.radians(pygame.time.get_ticks() * 0.05)
                 cx, cy   = self.warning_centar
-                self.snitch_pos[0] = cx + math.cos(ugao_rad) * 80
-                self.snitch_pos[1] = cy + math.sin(ugao_rad) * 80
-                self.snitch_ugao   = math.degrees(ugao_rad) + 90
+                self.agent_pos[0] = cx + math.cos(ugao_rad) * 80
+                self.agent_pos[1] = cy + math.sin(ugao_rad) * 80
+                self.agent_ugao   = math.degrees(ugao_rad) + 90
 
         else:
             cilj = RUTA_PATROLE[self.cilj_patrole]
-            dist = self.distanca(self.snitch_pos, cilj)
+            dist = self.distanca(self.agent_pos, cilj)
             if dist < 5:
                 self.cilj_patrole = (self.cilj_patrole + 1) % len(RUTA_PATROLE)
             else:
-                dx = (cilj[0] - self.snitch_pos[0]) / dist
-                dy = (cilj[1] - self.snitch_pos[1]) / dist
-                self.snitch_pos[0] += dx * b
-                self.snitch_pos[1] += dy * b
-                self.snitch_ugao    = self.ugao_do(self.snitch_pos, cilj)
+                dx = (cilj[0] - self.agent_pos[0]) / dist
+                dy = (cilj[1] - self.agent_pos[1]) / dist
+                self.agent_pos[0] += dx * b
+                self.agent_pos[1] += dy * b
+                self.agent_ugao    = self.ugao_do(self.agent_pos, cilj)
 
     def pomeri_igraca(self, tasteri):
         dx, dy = 0, 0
@@ -296,7 +296,7 @@ class Igrica:
             self.pomeri_igraca(tasteri)
 
             ulazi       = self.izracunaj_ulaze()
-            novo_stanje = self.snitch.proceni(
+            novo_stanje = self.agent.proceni(
                 vizuelna=ulazi["vizuelna"],
                 zvuk=ulazi["zvuk"],
                 pokrivenost=ulazi["pokrivenost"],
@@ -305,20 +305,20 @@ class Igrica:
             )
             self.azuriraj_stanje(novo_stanje, ulazi["zvuk"])
             self.azuriraj_brzinu()   # ← posle stanja, čita novo stanje
-            self.pomeri_snitcha()
+            self.pomeri_agenta()
 
             boja_stanja = BOJE_STANJA[self.stanje]
             self.ekran.fill(BOJA_POZADINE)
             self.renderer.crtaj_zbunjeve(ZBUNJEVI)
             self.renderer.crtaj_warning_zonu(self.warning_centar, self.stanje)
             self.renderer.crtaj_konus(
-                self.snitch_pos, self.snitch_ugao,
+                self.agent_pos, self.agent_ugao,
                 boja_stanja, UGAO_KONUSA, DUZINA_KONUSA,
             )
-            self.renderer.crtaj_snitcha(self.snitch_pos, self.snitch_ugao, boja_stanja)
+            self.renderer.crtaj_agenta(self.agent_pos, self.agent_ugao, boja_stanja)
             self.renderer.crtaj_igraca(self.igrac_pos, BOJA_IGRACA)
             self.renderer.crtaj_hud(
-                ulazi, self.snitch.status(), self.stanje,
+                ulazi, self.agent.status(), self.stanje,
                 self.vidi_tajmer, DELAY_POTVRDJENO,
                 self.potvrdjeno_tajmer, self.warning_tajmer, FPS,
             )
