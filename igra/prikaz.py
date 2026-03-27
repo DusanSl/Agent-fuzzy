@@ -1,4 +1,3 @@
-# igra/prikaz.py
 import pygame
 import math
 from agent.stanja import StanjeAgenta, BOJE_STANJA

@@ -1,4 +1,3 @@
-# main.py
 from agent.nadzornik import Agent
 from fazi.defazifikacija import ispisi_izlaze
 

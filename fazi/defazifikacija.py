@@ -1,4 +1,3 @@
-# fazi/defazifikacija.py
 import numpy as np
 import skfuzzy as fuzz
 from fazi.skupovi import (
@@ -67,7 +66,6 @@ def odredi_stanje(izlazi: dict) -> str:
     upornost_mu_velika = _mu(x_upor_ulaz, upor_velika, upor)
 
     # 2. Primena pravila i agregacija
-    # (Pravila ostaju ista, ali ćemo ih grupisati po stanju radi lakšeg čitanja)
 
     # MIRNO PRAVILA
     mirno_aktivacije = [

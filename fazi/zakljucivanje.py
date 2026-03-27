@@ -1,4 +1,3 @@
-# fazi/zakljucivanje.py
 import numpy as np
 
 from fazi.pravila import (

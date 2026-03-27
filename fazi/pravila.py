@@ -1,4 +1,3 @@
-# fazi/pravila.py
 import numpy as np
 import skfuzzy as fuzz
 from fazi.skupovi import (
