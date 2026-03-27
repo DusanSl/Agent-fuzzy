@@ -133,14 +133,6 @@ def ispisi_izlaze(izlazi: dict, stanje: str) -> None:
         "upornost":    "Upornost",
     }
 
-    print("\n" + "=" * 48)
-    print("  FaziAgent — Crisp izlazi")
-    print("=" * 48)
 
     for kljuc, vrednost in izlazi.items():
         traka = "█" * int(vrednost * 20)
-        print(f"  {labele[kljuc]:<14} {vrednost:.3f}  {traka}")
-
-    ikona = ikone_stanja.get(stanje, "⚪")
-    print(f"\n  Stanje Agenta:  {ikona}  {stanje}")
-    print("=" * 48)

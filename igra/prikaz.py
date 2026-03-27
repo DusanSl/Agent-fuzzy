@@ -5,7 +5,7 @@ from agent.stanja import StanjeAgenta, BOJE_STANJA
 
 class Prikaz:
     def __init__(self, ekran, font_m, font_v, sirina: int, visina: int):
-        self.ekran  = ekran
+        self.ekran = ekran
         self.font_m = font_m
         self.font_v = font_v
         self.SIRINA = sirina
@@ -18,9 +18,9 @@ class Prikaz:
 
     def crtaj_konus(self, agent_pos, agent_ugao, boja_stanja,
                     ugao_konusa: int, duzina_konusa: int):
-        ugao_rad  = math.radians(agent_ugao)
+        ugao_rad = math.radians(agent_ugao)
         pola_ugao = math.radians(ugao_konusa / 2)
-        tacke     = [tuple(map(int, agent_pos))]
+        tacke = [tuple(map(int, agent_pos))]
 
         for i in range(21):
             a = ugao_rad - pola_ugao + (i / 20) * math.radians(ugao_konusa)
@@ -29,14 +29,14 @@ class Prikaz:
             tacke.append((int(x), int(y)))
 
         povrsina = pygame.Surface((self.SIRINA, self.VISINA), pygame.SRCALPHA)
-        r, g, b  = boja_stanja
-        pygame.draw.polygon(povrsina, (r, g, b, 40),  tacke)
+        r, g, b = boja_stanja
+        pygame.draw.polygon(povrsina, (r, g, b, 40), tacke)
         pygame.draw.polygon(povrsina, (r, g, b, 120), tacke, 2)
         self.ekran.blit(povrsina, (0, 0))
 
     def crtaj_agenta(self, agent_pos, agent_ugao, boja_stanja):
-        ax, ay   = int(agent_pos[0]), int(agent_pos[1])
-        pygame.draw.circle(self.ekran, boja_stanja,     (ax, ay), 16)
+        ax, ay = int(agent_pos[0]), int(agent_pos[1])
+        pygame.draw.circle(self.ekran, boja_stanja, (ax, ay), 16)
         pygame.draw.circle(self.ekran, (255, 255, 255), (ax, ay), 16, 2)
         ugao_rad = math.radians(agent_ugao)
         nx = ax + int(math.cos(ugao_rad) * 22)
@@ -45,14 +45,14 @@ class Prikaz:
 
     def crtaj_igraca(self, igrac_pos, boja_igraca):
         ix, iy = int(igrac_pos[0]), int(igrac_pos[1])
-        pygame.draw.circle(self.ekran, boja_igraca,     (ix, iy), 12)
+        pygame.draw.circle(self.ekran, boja_igraca, (ix, iy), 12)
         pygame.draw.circle(self.ekran, (255, 255, 255), (ix, iy), 12, 2)
 
     def crtaj_warning_zonu(self, warning_centar, stanje):
         if warning_centar and stanje == StanjeAgenta.UPOZORENJE:
-            cx, cy   = int(warning_centar[0]), int(warning_centar[1])
+            cx, cy = int(warning_centar[0]), int(warning_centar[1])
             povrsina = pygame.Surface((self.SIRINA, self.VISINA), pygame.SRCALPHA)
-            pygame.draw.circle(povrsina, (255, 215, 0, 30),  (cx, cy), 100)
+            pygame.draw.circle(povrsina, (255, 215, 0, 30), (cx, cy), 100)
             pygame.draw.circle(povrsina, (255, 215, 0, 150), (cx, cy), 100, 2)
             self.ekran.blit(povrsina, (0, 0))
 
@@ -61,9 +61,9 @@ class Prikaz:
                   potvrdjeno_tajmer: int, warning_tajmer: int, fps: int):
 
         ikone = {
-            StanjeAgenta.MIRNO:      "MIRNO",
+            StanjeAgenta.MIRNO: "MIRNO",
             StanjeAgenta.UPOZORENJE: "UPOZORENJE",
-            StanjeAgenta.POTVRĐENO:  "POTVRDJENO",
+            StanjeAgenta.POTVRĐENO: "POTVRDJENO",
         }
 
         povrsina = pygame.Surface((310, 320), pygame.SRCALPHA)
@@ -77,7 +77,8 @@ class Prikaz:
         # Ulazi
         y = 55
         self.ekran.blit(self.font_m.render(
-            "ULAZI", True, (150, 150, 150)), (20, y)); y += 22
+            "ULAZI", True, (150, 150, 150)), (20, y));
+        y += 22
         for naziv_u, val in ulazi.items():
             if naziv_u == "ugao":
                 traka_val = val / 180.0
@@ -86,22 +87,28 @@ class Prikaz:
                 traka_val = val
                 prikaz = f"{val:.2f} "
 
-            traka  = "█" * int(traka_val * 15) + "░" * (15 - int(traka_val * 15))
+            traka = "█" * int(traka_val * 15) + "░" * (15 - int(traka_val * 15))
             linija = f"{naziv_u:<14} {prikaz} {traka}"
             self.ekran.blit(self.font_m.render(linija, True, (200, 200, 200)), (20, y))
             y += 20
 
-        # Izlazi
+        # IZLAZI
         y += 6
         self.ekran.blit(self.font_m.render(
-            "IZLAZI", True, (150, 150, 150)), (20, y)); y += 22
+            "IZLAZI", True, (150, 150, 150)), (20, y));
+        y += 22
+
+        OFFSET = 0.16
+
         for naziv_i, val in {
             "angazovanje": status["angazovanje"],
-            "brzina":      status["brzina"],
-            "upornost":    status["upornost"],
+            "brzina": status["brzina"],
+            "upornost": status["upornost"],
         }.items():
-            traka  = "█" * int(val * 15) + "░" * (15 - int(val * 15))
-            linija = f"{naziv_i:<14} {val:.2f} {traka}"
+            prikaz_val = max(0.0, (val - OFFSET) / (1.0 - OFFSET))
+
+            traka = "█" * int(prikaz_val * 15) + "░" * (15 - int(prikaz_val * 15))
+            linija = f"{naziv_i:<14} {prikaz_val:.2f} {traka}"
             self.ekran.blit(self.font_m.render(linija, True, (200, 220, 255)), (20, y))
             y += 20
 
