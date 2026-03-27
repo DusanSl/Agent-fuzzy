@@ -1,4 +1,3 @@
-# fazi/defazifikacija.py
 import numpy as np
 import skfuzzy as fuzz
 from fazi.skupovi import (
@@ -49,61 +48,76 @@ def _mu(universe, mf, val):
 
 
 def odredi_stanje(izlazi: dict) -> str:
-    ang  = izlazi["angazovanje"]
-    brz  = izlazi["brzina"]
+    ang = izlazi["angazovanje"]
+    brz = izlazi["brzina"]
     upor = izlazi["upornost"]
 
-    # Fuzzifikacija crisp izlaza kao ulaza u state kontroler
-    angazovanje_mu_nisko   = _mu(x_angazovanje, angazovanje_nisko,   ang)
+    # 1. Fuzzifikacija crisp izlaza (Ostaje isto)
+    angazovanje_mu_nisko = _mu(x_angazovanje, angazovanje_nisko, ang)
     angazovanje_mu_srednje = _mu(x_angazovanje, angazovanje_srednje, ang)
-    angazovanje_mu_visoko  = _mu(x_angazovanje, angazovanje_visoko,  ang)
+    angazovanje_mu_visoko = _mu(x_angazovanje, angazovanje_visoko, ang)
 
-    brzina_mu_spora    = _mu(x_brzina_ulaz, brzina_spora,   brz)
-    brzina_mu_srednja  = _mu(x_brzina_ulaz, brzina_srednja, brz)
-    brzina_mu_brza     = _mu(x_brzina_ulaz, brzina_brza,    brz)
+    brzina_mu_spora = _mu(x_brzina_ulaz, brzina_spora, brz)
+    brzina_mu_srednja = _mu(x_brzina_ulaz, brzina_srednja, brz)
+    brzina_mu_brza = _mu(x_brzina_ulaz, brzina_brza, brz)
 
-    upornost_mu_mala    = _mu(x_upor_ulaz, upor_mala,    upor)
+    upornost_mu_mala = _mu(x_upor_ulaz, upor_mala, upor)
     upornost_mu_srednja = _mu(x_upor_ulaz, upor_srednja, upor)
-    upornost_mu_velika  = _mu(x_upor_ulaz, upor_velika,  upor)
+    upornost_mu_velika = _mu(x_upor_ulaz, upor_velika, upor)
 
-    aktivacije = []
+    # 2. Primena pravila i agregacija
 
-    # MIRNO
-    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora, upornost_mu_mala), stanje_mirno))
-    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora), stanje_mirno))
-    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, upornost_mu_mala), stanje_mirno))
-    aktivacije.append(np.fmin(min(brzina_mu_spora, upornost_mu_mala), stanje_mirno))
+    # MIRNO PRAVILA
+    mirno_aktivacije = [
+        np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora, upornost_mu_mala), stanje_mirno),
+        np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora), stanje_mirno),
+        np.fmin(min(angazovanje_mu_nisko, upornost_mu_mala), stanje_mirno),
+        np.fmin(min(brzina_mu_spora, upornost_mu_mala), stanje_mirno)
+    ]
 
-    # UPOZORENJE
-    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_srednja), stanje_upozorenje))
-    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, upornost_mu_srednja), stanje_upozorenje))
-    aktivacije.append(np.fmin(min(brzina_mu_srednja, upornost_mu_srednja), stanje_upozorenje))
-    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_srednja, upornost_mu_srednja), stanje_upozorenje))
-    aktivacije.append(np.fmin(min(angazovanje_mu_nisko, upornost_mu_srednja), stanje_upozorenje))
-    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_spora, upornost_mu_srednja), stanje_upozorenje))
+    # UPOZORENJE PRAVILA
+    upozorenje_aktivacije = [
+        np.fmin(min(angazovanje_mu_srednje, brzina_mu_srednja), stanje_upozorenje),
+        np.fmin(min(angazovanje_mu_srednje, upornost_mu_srednja), stanje_upozorenje),
+        np.fmin(min(brzina_mu_srednja, upornost_mu_srednja), stanje_upozorenje),
+        np.fmin(min(angazovanje_mu_srednje, brzina_mu_srednja, upornost_mu_srednja), stanje_upozorenje),
+        np.fmin(min(angazovanje_mu_nisko, upornost_mu_srednja), stanje_upozorenje),
+        np.fmin(min(angazovanje_mu_srednje, brzina_mu_spora, upornost_mu_srednja), stanje_upozorenje)
+    ]
 
     # POTVRĐENO
-    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza, upornost_mu_velika),  stanje_potvrdjeno))
-    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza), stanje_potvrdjeno))
-    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, upornost_mu_velika), stanje_potvrdjeno))
-    aktivacije.append(np.fmin(min(brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno))
-    aktivacije.append(np.fmin(angazovanje_mu_visoko, stanje_potvrdjeno))
-    aktivacije.append(np.fmin(min(angazovanje_mu_srednje, brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno))
-    aktivacije.append(np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza, upornost_mu_srednja), stanje_potvrdjeno))
+    potvrdjeno_aktivacije = [
+        np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno),
+        np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza), stanje_potvrdjeno),
+        np.fmin(min(angazovanje_mu_visoko, upornost_mu_velika), stanje_potvrdjeno),
+        np.fmin(min(brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno),
+        np.fmin(angazovanje_mu_visoko, stanje_potvrdjeno),
+        np.fmin(min(angazovanje_mu_srednje, brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno),
+        np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza, upornost_mu_srednja), stanje_potvrdjeno)
+    ]
 
-    agg = np.fmax.reduce(aktivacije)
+    sve_aktivacije = mirno_aktivacije + upozorenje_aktivacije + potvrdjeno_aktivacije
+    agg = np.fmax.reduce(sve_aktivacije)
 
     if agg.max() == 0:
         return "MIRNO"
 
     crisp = float(fuzz.defuzz(x_stanje, agg, "centroid"))
 
-    if crisp >= 0.55:
-        return "POTVRĐENO"
-    elif crisp >= 0.35:
-        return "UPOZORENJE"
-    else:
-        return "MIRNO"
+    pripadnost_mirno = _mu(x_stanje, stanje_mirno, crisp)
+    pripadnost_upozorenje = _mu(x_stanje, stanje_upozorenje, crisp)
+    pripadnost_potvrdjeno = _mu(x_stanje, stanje_potvrdjeno, crisp)
+
+    nivoi = {
+        "MIRNO": pripadnost_mirno,
+        "UPOZORENJE": pripadnost_upozorenje,
+        "POTVRĐENO": pripadnost_potvrdjeno
+    }
+
+    # Biramo stanje sa najvećom pripadnošću (Max membership defuzzification)
+    dominantno_stanje = max(nivoi, key=nivoi.get)
+
+    return dominantno_stanje
 
 
 def ispisi_izlaze(izlazi: dict, stanje: str) -> None:

@@ -1,4 +1,3 @@
-# igra/simulacija.py
 import pygame
 import math
 import sys

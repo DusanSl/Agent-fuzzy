@@ -1,4 +1,3 @@
-# agent/nadzornik.py
 from fazi.zakljucivanje import pokreni_fis
 from agent.stanja import StanjeAgenta, string_u_stanje
 
