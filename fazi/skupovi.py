@@ -67,7 +67,7 @@ def get_membership(x_universe, mf, vrednost: float) -> float:
 
 def plot_all():
     fig, axes = plt.subplots(5, 2, figsize=(13, 16))
-    fig.suptitle("FuzzySnitch — Membership funkcije", fontsize=14)
+    fig.suptitle("FuzzyAgent funkcije", fontsize=14)
 
     skupovi = [
         (axes[0, 0], x_vizuelna,

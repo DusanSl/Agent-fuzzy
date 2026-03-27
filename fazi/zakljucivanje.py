@@ -34,7 +34,7 @@ def pokreni_fis(
     # Korak 3 — Defuzzifikacija (Centroid COA)
     izlazi = defuzzifikuj_sve(agg_angazovanje, agg_brzina, agg_upornost)
 
-    # Korak 4 — Određivanje stanja Snitcha
+    # Korak 4 — Određivanje stanja agenta
     stanje = odredi_stanje(izlazi)
 
     if ispisi:
