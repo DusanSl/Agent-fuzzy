@@ -22,18 +22,14 @@ def pokreni_fis(
     ispisi:      bool  = False,
 ) -> dict:
 
-    # Korak 1 — Fuzzifikacija
     mu = fuzzifikuj(vizuelna, zvuk, pokrivenost, detekcija, ugao)
 
-    # Korak 2 — Agregacija pravila sa 3 mamdani kontrolerima
     agg_angazovanje = kontroler_angazovanje(mu)
     agg_brzina      = kontroler_brzina(mu)
     agg_upornost    = kontroler_upornost(mu)
 
-    # Korak 3 — Defuzzifikacija (Centroid COA)
     izlazi = defuzzifikuj_sve(agg_angazovanje, agg_brzina, agg_upornost)
 
-    # Korak 4 — Određivanje stanja agenta
     stanje = odredi_stanje(izlazi)
 
     if ispisi:
