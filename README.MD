@@ -62,4 +62,4 @@ Igra služi kao laboratorija u kojoj generišete šum i otkrivate se iz zaklona 
 U **HUD interfejsu (sa leve strane)** možete uživo vizuelno ispratiti trenutne (fazifikovane) nivoe senzornih ulaza i način sa kojim reaguju na njih sami izlazi i trenutno stanje.
 
 ---
-*Ovaj demonstracioni komad uspešno pokazuje zašto se implementacije mekog računarstva (Soft Computing) ponašaju drastično prirodnije i "pametnije" od tradicionalnih tvrdih grananja sa `if-else` petljama prilikom postojanja nesigurnosti i dvosmislenosti u procenama.*
+*Ovaj demonstracioni komad uspešno pokazuje zašto se implementacije mekog računarstva (Soft Computing) ponašaju prirodnije i "pametnije" od tradicionalnih tvrdih grananja sa `if-else` petljama prilikom postojanja nesigurnosti i dvosmislenosti u procenama.*
