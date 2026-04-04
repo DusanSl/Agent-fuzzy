@@ -74,7 +74,6 @@ class Prikaz:
         tekst = self.font_v.render(naziv, True, BOJE_STANJA[stanje])
         self.ekran.blit(tekst, (20, 18))
 
-        # Ulazi
         y = 55
         self.ekran.blit(self.font_m.render(
             "ULAZI", True, (150, 150, 150)), (20, y));
@@ -92,7 +91,6 @@ class Prikaz:
             self.ekran.blit(self.font_m.render(linija, True, (200, 200, 200)), (20, y))
             y += 20
 
-        # IZLAZI
         y += 6
         self.ekran.blit(self.font_m.render(
             "IZLAZI", True, (150, 150, 150)), (20, y));
