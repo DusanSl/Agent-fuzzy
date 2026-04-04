@@ -155,7 +155,6 @@ class Igrica:
             "ugao":        round(ugaona_razlika, 1),
         }
 
-    # Logika stanja
     def azuriraj_stanje(self, novo_stanje: StanjeAgenta, zvuk: float):
         u_konusu  = self.u_konusu()
         iza_zbuna = self.iza_zbuna()
@@ -170,7 +169,6 @@ class Igrica:
             else:
                 self.vidi_tajmer = max(0, self.vidi_tajmer - 3)
 
-        # POTVRĐENO
         if u_konusu and not iza_zbuna:
             self.stanje            = StanjeAgenta.POTVRĐENO
             self.potvrdjeno_tajmer = TRAJANJE_POTVRDJENO
@@ -178,7 +176,6 @@ class Igrica:
             self.warning_tajmer    = 0
             self.vidi_tajmer       = 0
 
-        # UPOZORENJE
         elif novo_stanje == StanjeAgenta.UPOZORENJE or (u_konusu and iza_zbuna) or zvuk >= 0.70:
             if self.stanje != StanjeAgenta.POTVRĐENO:
                 self.stanje = StanjeAgenta.UPOZORENJE
@@ -195,19 +192,16 @@ class Igrica:
                     self.warning_tajmer   = self.fuzzy_warning_tajmer()
                     self.lure_aktivan     = True
 
-        # MIRNO
         else:
             if self.stanje not in (StanjeAgenta.POTVRĐENO, StanjeAgenta.UPOZORENJE):
                 self.stanje = StanjeAgenta.MIRNO
 
-        # Odbrojavanje — POTVRĐENO
         if self.potvrdjeno_tajmer > 0:
             self.potvrdjeno_tajmer -= 1
             if self.potvrdjeno_tajmer == 0:
                 self.vidi_tajmer = 0
                 self.stanje = StanjeAgenta.MIRNO
 
-        # Odbrojavanje — UPOZORENJE
         if self.warning_tajmer > 0 and self.stanje == StanjeAgenta.UPOZORENJE:
             if self.lure_aktivan:
                 otpadanje = 1.0
@@ -303,7 +297,7 @@ class Igrica:
                 ugao=ulazi["ugao"],
             )
             self.azuriraj_stanje(novo_stanje, ulazi["zvuk"])
-            self.azuriraj_brzinu()   # ← posle stanja, čita novo stanje
+            self.azuriraj_brzinu()
             self.pomeri_agenta()
 
             boja_stanja = BOJE_STANJA[self.stanje]
