@@ -4,19 +4,16 @@ from fazi.skupovi import (
     x_vizuelna, x_zvuk, x_pokrivenost, x_detekcija, x_ugao,
     x_ang, x_brzina, x_upornost,
 
-    # Ulazne MF
     vizuelna_nejasna, vizuelna_delimicna, vizuelna_jasna,
     zvuk_tisina, zvuk_sum, zvuk_pucanj,
     pokr_retka, pokr_srednja, pokr_gusta,
     det_niska, det_srednja, det_visoka,
     ugao_ispred, ugao_bok, ugao_iza,
 
-    # Izlazne MF
     ang_ignorisi, ang_trazi, ang_oznaci,
     brzina_patrolna, brzina_oprezna, brzina_fokusirana,
     upor_kratkotrajna, upor_zadrzana, upor_uporna,
 
-    # Helper
     get_membership,
 )
 
@@ -56,7 +53,6 @@ def fuzzifikuj(
         },
     }
 
-# Kontroler 1 — Angažovanje  (Ignorisi / Traži / Označi)
 
 def kontroler_angazovanje(mu: dict) -> np.ndarray:
     vizuelna    = mu["vizuelna"]
@@ -67,7 +63,6 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
 
     aktivacije = []
 
-    # IGNORIŠI
     p01 = min(vizuelna["nejasna"], zvuk["tisina"])
     aktivacije.append(np.fmin(p01, ang_ignorisi))
     p02 = min(vizuelna["nejasna"], pokrivenost["gusta"])
@@ -79,7 +74,6 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
     p05 = min(ugao["iza"], zvuk["tisina"])
     aktivacije.append(np.fmin(p05, ang_ignorisi))
 
-    # TRAŽI
     p06 = vizuelna["delimicna"]
     aktivacije.append(np.fmin(p06, ang_trazi))
     p07 = min(zvuk["sum"], vizuelna["nejasna"])
@@ -95,7 +89,6 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
     p12 = min(ugao["iza"], zvuk["sum"])
     aktivacije.append(np.fmin(p12, ang_trazi))
 
-    # OZNAČI
     p13 = min(vizuelna["jasna"], detekcija["visoka"])
     aktivacije.append(np.fmin(p13, ang_oznaci))
     p14 = min(vizuelna["jasna"], zvuk["pucanj"])
@@ -113,7 +106,6 @@ def kontroler_angazovanje(mu: dict) -> np.ndarray:
 
     return np.fmax.reduce(aktivacije)
 
-# Kontroler 2 — Brzina kretanja  (Patrolna / Oprezna / Fokusirana)
 
 def kontroler_brzina(mu: dict) -> np.ndarray:
     vizuelna    = mu["vizuelna"]
@@ -124,7 +116,6 @@ def kontroler_brzina(mu: dict) -> np.ndarray:
 
     aktivacije = []
 
-    # PATROLNA
     p01 = min(zvuk["tisina"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p01, brzina_patrolna))
     p02 = min(detekcija["niska"], pokrivenost["gusta"])
@@ -136,7 +127,6 @@ def kontroler_brzina(mu: dict) -> np.ndarray:
     p05 = min(vizuelna["nejasna"], pokrivenost["gusta"])
     aktivacije.append(np.fmin(p05, brzina_patrolna))
 
-    # OPREZNA
     p06 = min(zvuk["sum"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p06, brzina_oprezna))
     p07 = min(vizuelna["delimicna"], detekcija["srednja"])
@@ -152,7 +142,6 @@ def kontroler_brzina(mu: dict) -> np.ndarray:
     p12 = min(detekcija["srednja"], pokrivenost["srednja"])
     aktivacije.append(np.fmin(p12, brzina_oprezna))
 
-    # FOKUSIRANA
     p13 = zvuk["pucanj"]
     aktivacije.append(np.fmin(p13, brzina_fokusirana))
     p14 = min(vizuelna["jasna"], detekcija["visoka"])
@@ -170,7 +159,6 @@ def kontroler_brzina(mu: dict) -> np.ndarray:
 
     return np.fmax.reduce(aktivacije)
 
-# Kontroler 3 — Upornost pretrage  (Kratkotrajna / Zadržana / Uporna)
 
 def kontroler_upornost(mu: dict) -> np.ndarray:
     vizuelna    = mu["vizuelna"]
@@ -181,7 +169,6 @@ def kontroler_upornost(mu: dict) -> np.ndarray:
 
     aktivacije = []
 
-    # KRATKOTRAJNA
     p01 = min(zvuk["tisina"], vizuelna["nejasna"])
     aktivacije.append(np.fmin(p01, upor_kratkotrajna))
     p02 = min(detekcija["niska"], pokrivenost["gusta"])
@@ -193,7 +180,6 @@ def kontroler_upornost(mu: dict) -> np.ndarray:
     p05 = min(vizuelna["nejasna"], detekcija["niska"])
     aktivacije.append(np.fmin(p05, upor_kratkotrajna))
 
-    # ZADRŽANA
     p06 = min(zvuk["sum"], detekcija["srednja"])
     aktivacije.append(np.fmin(p06, upor_zadrzana))
     p07 = min(vizuelna["delimicna"], zvuk["sum"])
@@ -209,7 +195,6 @@ def kontroler_upornost(mu: dict) -> np.ndarray:
     p12 = min(ugao["iza"], zvuk["sum"])
     aktivacije.append(np.fmin(p12, upor_zadrzana))
 
-    # UPORNA
     p13 = zvuk["pucanj"]
     aktivacije.append(np.fmin(p13, upor_uporna))
     p14 = min(vizuelna["jasna"], detekcija["visoka"])

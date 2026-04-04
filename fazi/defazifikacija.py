@@ -20,7 +20,6 @@ def defuzzifikuj_sve(
         "upornost":    defuzzifikuj_centroid(x_upornost, agg_upornost),
     }
 
-# Fuzzy kontroler za stanje
 x_stanje       = np.arange(0, 1.01, 0.01)
 x_angazovanje  = np.arange(0, 1.01, 0.01)
 x_brzina_ulaz  = np.arange(0, 1.01, 0.01)
@@ -52,7 +51,6 @@ def odredi_stanje(izlazi: dict) -> str:
     brz = izlazi["brzina"]
     upor = izlazi["upornost"]
 
-    # 1. Fuzzifikacija crisp izlaza (Ostaje isto)
     angazovanje_mu_nisko = _mu(x_angazovanje, angazovanje_nisko, ang)
     angazovanje_mu_srednje = _mu(x_angazovanje, angazovanje_srednje, ang)
     angazovanje_mu_visoko = _mu(x_angazovanje, angazovanje_visoko, ang)
@@ -65,9 +63,6 @@ def odredi_stanje(izlazi: dict) -> str:
     upornost_mu_srednja = _mu(x_upor_ulaz, upor_srednja, upor)
     upornost_mu_velika = _mu(x_upor_ulaz, upor_velika, upor)
 
-    # 2. Primena pravila i agregacija
-
-    # MIRNO PRAVILA
     mirno_aktivacije = [
         np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora, upornost_mu_mala), stanje_mirno),
         np.fmin(min(angazovanje_mu_nisko, brzina_mu_spora), stanje_mirno),
@@ -75,7 +70,6 @@ def odredi_stanje(izlazi: dict) -> str:
         np.fmin(min(brzina_mu_spora, upornost_mu_mala), stanje_mirno)
     ]
 
-    # UPOZORENJE PRAVILA
     upozorenje_aktivacije = [
         np.fmin(min(angazovanje_mu_srednje, brzina_mu_srednja), stanje_upozorenje),
         np.fmin(min(angazovanje_mu_srednje, upornost_mu_srednja), stanje_upozorenje),
@@ -85,7 +79,6 @@ def odredi_stanje(izlazi: dict) -> str:
         np.fmin(min(angazovanje_mu_srednje, brzina_mu_spora, upornost_mu_srednja), stanje_upozorenje)
     ]
 
-    # POTVRĐENO
     potvrdjeno_aktivacije = [
         np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza, upornost_mu_velika), stanje_potvrdjeno),
         np.fmin(min(angazovanje_mu_visoko, brzina_mu_brza), stanje_potvrdjeno),
@@ -114,7 +107,6 @@ def odredi_stanje(izlazi: dict) -> str:
         "POTVRĐENO": pripadnost_potvrdjeno
     }
 
-    # Biramo stanje sa najvećom pripadnošću (Max membership defuzzification)
     dominantno_stanje = max(nivoi, key=nivoi.get)
 
     return dominantno_stanje
