@@ -74,7 +74,6 @@ class Igrica:
         self.peak_zvuk         = 0.0
         self.lure_aktivan      = False
 
-    # Fuzzy brzina → stvarna brzina
     def azuriraj_brzinu(self):
         b = self.agent.brzina
         if self.stanje == StanjeAgenta.POTVRĐENO:
@@ -111,7 +110,6 @@ class Igrica:
                 return True
         return False
 
-    # Ulazi
     def izracunaj_ulaze(self) -> dict:
         dist      = self.distanca(self.agent_pos, self.igrac_pos)
         u_konusu  = self.u_konusu()
