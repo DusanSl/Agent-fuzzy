@@ -26,30 +26,39 @@ Na bazi agregacije ovih izlaznih vrednosti donosi se konačna odluka o aktivnom 
 
 Projekat je strukturisan na sledeći način:
 
-- `fazi/` - Ovde je implementiran kompletan Fuzzy Inference System (FIS).
-  - `skupovi.py`: Definisan univerzum diskursa i funkcije pripadnosti (membership functions - trougaone i trapezoidne krive).
-  - `pravila.py`: Baza fuzzy pravila preklapanja stanja oslanjajući se na minimum (T-norme) i maksimume (S-norme).
-  - `zakljucivanje.py`: Modul koji povezuje sve korake (od fazifikacije preko aktivacije do defazifikacije).
-  - `defazifikacija.py`: Upotrebljeni *Centroid* metod za pretvaranje mekih (fuzzy) vrednosti nazad u realne brojeve prepoznatljive Pygame kodu.
-- `agent/` - Modul koji spaja izlaze iz fuzzy sistema sa samim entitetom agenta, upravlja njegovim stanjem i tranzicijama (`nadzornik.py` i `stanja.py`).
-- `igra/` - Pygame vizuelna simulacija napravljena da generiše ulaze agentu, kako bi demonstrirala vizuelnu promenu parametara uživo i učinila testiranje sistema preglednim.
-- `main.py` - Glavna skripta za inicijalizaciju i instanciranje rada simulacije.
+- `program/` - Sadrži gotovu `.exe` verziju (izvršni fajl `Snitch_Agent_Fuzzy.exe`) za direktno pokretanje bez instalacije paketa.
+- `izvorni kod/` - Direktorijum koji drži celokupan kod simulacije i agenta:
+  - `fazi/` - Ovde je implementiran kompletan Fuzzy Inference System (FIS).
+    - `skupovi.py`: Definisan univerzum diskursa i funkcije pripadnosti (membership functions - trougaone i trapezoidne krive).
+    - `pravila.py`: Baza fuzzy pravila preklapanja stanja oslanjajući se na minimum (T-norme) i maksimume (S-norme).
+    - `zakljucivanje.py`: Modul koji povezuje sve korake (od fazifikacije preko aktivacije do defazifikacije).
+    - `defazifikacija.py`: Upotrebljeni *Centroid* metod za pretvaranje mekih (fuzzy) vrednosti nazad u realne brojeve prepoznatljive Pygame kodu.
+  - `agent/` - Modul koji spaja izlaze iz fuzzy sistema sa samim entitetom agenta, upravlja njegovim stanjem i tranzicijama (`nadzornik.py` i `stanja.py`).
+  - `igra/` - Pygame vizuelna simulacija napravljena da generiše ulaze agentu, kako bi demonstrirala vizuelnu promenu parametara uživo i učinila testiranje sistema preglednim.
+  - `main.py` - Glavna skripta za inicijalizaciju i instanciranje rada simulacije.
 
 ## Pokretanje projekta
 
-Da biste pokrenuli sistem, potrebno je preuzeti odgovarajuće Python pakete koji podržavaju scikit-fuzzy logiku i pygame okruženje.
+Postoje dva načina da pokrenete ovaj projekat:
 
-### Instalacija biblioteka
-Sve neophodne biblioteke navedene su u fajlu `potrebne biblioteke.txt`. Možete ih brzo instalirati pokretanjem komande:
+### 1. Pokretanje putem izvršnog (.exe) fajla (Preporučeno)
+U direktorijumu `program` nalazi se gotov izvršni fajl **`Snitch_Agent_Fuzzy.exe`**. Njegovim pokretanjem otvara se radna simulacija direktno, bez potrebe za instalacijom Pythona i pratećih biblioteka.
+
+### 2. Pokretanje iz izvornog koda
+Ukoliko želite da pregledate ili menjate kod i pokrećete ga kroz Python interpreter, potrebno je preuzeti odgovarajuće Python pakete koji podržavaju scikit-fuzzy logiku i pygame okruženje.
+
+#### Instalacija biblioteka
+Sve neophodne biblioteke navedene su u fajlu `potrebne biblioteke.txt`. Možete ih brzo instalirati pokretanjem komande u konzoli/terminalu:
 
 ```bash
 pip install scikit-fuzzy numpy scipy pygame
 ```
 
-### Startovanje simulacije
-Nakon uspešne instalacije svih paketa, okruženje pokrećete kroz *main* fajl:
+#### Startovanje simulacije
+Nakon uspešne instalacije svih paketa, uđite u direktorijum `izvorni kod` i pokrenite *main* fajl:
 
 ```bash
+cd "izvorni kod"
 python main.py
 ```
 
